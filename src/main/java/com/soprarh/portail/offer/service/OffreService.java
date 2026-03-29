@@ -60,6 +60,7 @@ public class OffreService {
                 .formationRequise(request.formationRequise())
                 .statut(statut)
                 .datePublication(statut == StatutOffre.publiee ? LocalDate.now() : null)
+                .dateExpiration(request.dateExpiration())
                 .creePar(createur)
                 .build();
 
@@ -94,6 +95,9 @@ public class OffreService {
         }
         if (request.formationRequise() != null) {
             offre.setFormationRequise(request.formationRequise());
+        }
+        if (request.dateExpiration() != null) {
+            offre.setDateExpiration(request.dateExpiration());
         }
 
         OffreEmploi saved = offreRepository.save(offre);

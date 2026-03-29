@@ -3,6 +3,8 @@ package com.soprarh.portail.offer.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+import java.time.LocalDate;
+
 /**
  * DTO pour creer une nouvelle offre d'emploi.
  * US-OFF-01: Saisie du titre, description, experience, formation.
@@ -27,6 +29,11 @@ public record CreateOffreRequest(
          * Statut initial: "brouillon" ou "publiee".
          * Si null, defaut = brouillon.
          */
-        String statut
+        String statut,
+
+        /**
+         * Date d'expiration de l'offre (optionnelle).
+         */
+        LocalDate dateExpiration
 ) {}
 

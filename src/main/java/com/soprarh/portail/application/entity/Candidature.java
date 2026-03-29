@@ -20,7 +20,12 @@ import java.util.UUID;
  *   statut           varchar(20) DEFAULT 'soumise',
  *   score_total      double precision,
  *   date_creation    timestamp DEFAULT CURRENT_TIMESTAMP,
- *   UNIQUE (candidat_id, offre_id)
+ *   lettre_motivation text,
+ *   UNIQUE (candidat_id, offre_id),
+ *   CONSTRAINT candidatures_statut_check CHECK (statut IN (
+ *       'soumise','en_evaluation_rh','envoyee_manager',
+ *       'acceptee_manager','rejetee_rh','rejetee_manager','entretien_planifie'
+ *   ))
  * );
  */
 @Entity
@@ -80,6 +85,13 @@ public class Candidature {
      */
     @Column(name = "score_total")
     private Double scoreTotal;
+
+    /**
+     * Lettre de motivation du candidat.
+     * Colonne: lettre_motivation text (nullable)
+     */
+    @Column(name = "lettre_motivation", columnDefinition = "text")
+    private String lettreMotivation;
 
     /**
      * Date de creation de l'enregistrement.

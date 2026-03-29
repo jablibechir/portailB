@@ -1,0 +1,103 @@
+# Backlog projet – Portail de Recrutement Intelligent
+
+## Vue d’ensemble
+- Monolithe Spring Boot 3 (Java 17), PostgreSQL, JWT/RBAC, MapStruct.
+- Rôles: Candidat, RH (inclut Admin), Manager.
+- Modules: Auth, Offres, Candidatures, CV/Parsing/Scoring, Entretiens, Notifications, Dashboard/Stats, Gestion utilisateurs/permissions.
+
+## Plan de sprints (proposé)
+- Sprint 1: Auth de base (JWT), gestion utilisateurs (CRUD minimal), rôles/permissions.
+- Sprint 2: Offres (CRUD + statuts), filtrage offres, sécurisation par rôle.
+- Sprint 3: Candidatures (soumission, statut, filtrage), parsing CV + scoring (intégration IA), handoff RH→Manager.
+- Sprint 4: Entretiens + Notifications (cloche + email), calendrier, modèles de notification.
+- Sprint 5: Dashboard & Statistiques, exports, optimisations/QA.
+
+## Sprint backlog (proposé)
+| Sprint | Contenu principal | Stories incluses |
+|--------|-------------------|------------------|
+| 1 | Auth + users de base, activation email, JWT/RBAC minimal | AUTH-01, AUTH-02, AUTH-03 (scope CRUD minimal), SEC-01/02/03 (configuration) |
+| 2 | Offres CRUD + statuts + filtrage public | OFF-01, OFF-02, OFF-03, OFF-04, OFF-05 |
+| 3 | Candidatures + parsing CV + scoring + handoff Manager | CAND-01, CAND-02, CAND-03, CAND-04, CAND-05, CAND-06, CAND-07, CV-01, CV-02, SCORE-01 |
+| 4 | Entretiens + Notifications (cloche/email) | ENT-01, ENT-02, ENT-03, NOTIF-01, NOTIF-02, NOTIF-03, NOTIF-04 |
+| 5 | Dashboards & Stats + exports + durcissement sécurité/tests | DASH-01, DASH-02, DASH-03, DASH-04, SEC-01/02/03 (hardening), QA/tests |
+
+## Backlog détaillé (tableaux)
+
+### Auth & Utilisateurs
+| ID | User Story | Rôle | Priorité | Statut | Notes |
+|----|-------------|------|----------|--------|-------|
+| AUTH-01 | En tant que candidat, je m’inscris avec nom, prénom, email, mot de passe, et reçois un email d’activation (code expirant 24h). | Candidat | Haute | À faire | Col. DB `prenom`, `code_verification`, `code_expiration`, `etat=suspendu` jusqu’à activation. |
+| AUTH-02 | En tant qu’utilisateur, je me connecte via JWT et ne peux accéder qu’aux routes autorisées. | Tous | Haute | À faire | Vérifier `@PreAuthorize` par permission. |
+| AUTH-03 | En tant qu’admin/RH, je gère les utilisateurs (CRUD), rôles et permissions. | RH | Haute | À faire | RH = Admin. |
+| AUTH-04 | En tant qu’utilisateur, je mets à jour mon profil (nom, prénom, photo, mdp). | Tous | Moyenne | À faire | DTO sans mot de passe en lecture. |
+
+### Offres
+| ID | User Story | Rôle | Priorité | Statut | Notes |
+|----|-------------|------|----------|--------|-------|
+| OFF-01 | Créer une offre (Brouillon/Publier) avec titre, description, expérience, formation. | RH | Haute | À faire | Statut initial brouillon/publiee. |
+| OFF-02 | Modifier une offre (titre, description, compétences). | RH | Haute | À faire | Mise à jour visible immédiatement si publiée. |
+| OFF-03 | Supprimer une offre après confirmation (non visible candidat). | RH | Haute | À faire | Suppression définitive. |
+| OFF-04 | Changer statut (Brouillon/Publiee/Archivee). | RH | Moyenne | À faire | Archivage conserve données, non visible candidat. |
+| OFF-05 | Filtrer offres (mot-clé, expérience, formation). | Candidat | Moyenne | À faire | Offres publiées uniquement. |
+
+### Candidatures
+| ID | User Story | Rôle | Priorité | Statut | Notes |
+|----|-------------|------|----------|--------|-------|
+| CAND-01 | Soumettre une candidature (1 par offre/candidat) avec upload CV PDF, brouillon ou soumettre, notification. | Candidat | Haute | À faire | Contrainte unique (candidat_id, offre_id). |
+| CAND-02 | Suivre mes candidatures et leurs statuts. | Candidat | Moyenne | À faire | Liste + filtres/tri. |
+| CAND-03 | Changer statut (soumise/en_evaluation/acceptee/rejetee) et conserver l’historique. | RH | Haute | À faire | Via service RH. |
+| CAND-04 | Filtrer candidatures par statut, score, compétences/skills. | RH | Moyenne | À faire | Inclure tri date/score. |
+| CAND-05 | Consulter toutes les candidatures avec tri par date/score. | RH | Haute | À faire | Vue globale RH. |
+| CAND-06 | Envoyer une candidature au Manager pour validation. | RH | Haute | À faire | Marqueur “transmise au Manager”. |
+| CAND-07 | Valider ou rejeter une candidature transmise. | Manager | Haute | À faire | Prérequis avant entretien. |
+
+### CV / Parsing / Scoring (IA)
+| ID | User Story | Rôle | Priorité | Statut | Notes |
+|----|-------------|------|----------|--------|-------|
+| CV-01 | Uploader un CV (PDF) et lancer parsing IA pour pré-remplir compétences/expériences/formations/langues/certifs/soft skills/résumé. | Candidat | Haute | À faire | Microservice Python via REST. |
+| CV-02 | Stocker données CV et lier à la candidature (1-1). | Système | Haute | À faire | Tables `cvs`, `donnees_cv`. |
+| SCORE-01 | Calculer un score automatique basé sur critères pondérés. | Système | Haute | À faire | Tables `criteres_scoring`, `resultats_scoring`, `resultat_criteres`. |
+
+### Entretiens
+| ID | User Story | Rôle | Priorité | Statut | Notes |
+|----|-------------|------|----------|--------|-------|
+| ENT-01 | Planifier un entretien après validation RH+Manager. | RH | Moyenne | À faire | Nécessite modèle/table entretien (non présente dans dump). |
+| ENT-02 | Consulter calendrier des entretiens. | Candidat/RH/Manager | Moyenne | À faire | Vue calendrier + rappels. |
+| ENT-03 | Confirmer/annuler un entretien et notifier les parties. | RH | Moyenne | À faire | Notifications à émettre. |
+
+### Notifications
+| ID | User Story | Rôle | Priorité | Statut | Notes |
+|----|-------------|------|----------|--------|-------|
+| NOTIF-01 | Recevoir une notification d’activation de compte. | Candidat | Moyenne | À faire | Cloche + email. |
+| NOTIF-02 | Recevoir notification “candidature envoyée”. | Candidat | Moyenne | À faire | Après soumission. |
+| NOTIF-03 | Recevoir notification acceptation/rejet/entretien planifié. | Candidat | Moyenne | À faire | Multi-canaux (email/in-app). |
+| NOTIF-04 | Gérer l’historique des notifications. | Tous | Basse | À faire | Table notifications manquante dans dump. |
+
+### Dashboard & Statistiques
+| ID | User Story | Rôle | Priorité | Statut | Notes |
+|----|-------------|------|----------|--------|-------|
+| DASH-01 | Voir KPIs (nb candidatures, taux sélection, temps moyen, scores). | RH | Moyenne | À faire | Table `statistiques` existante. |
+| DASH-02 | Exporter un rapport (PDF/CSV). | RH | Basse/Moyenne | À faire | Périmètre à définir. |
+| DASH-03 | Dashboard candidat (mes candidatures, calendrier, notifications). | Candidat | Moyenne | À faire | Vue UI. |
+| DASH-04 | Dashboard manager (candidatures à valider, calendrier). | Manager | Moyenne | À faire | Vue UI. |
+
+### Permissions & Sécurité
+| ID | User Story | Rôle | Priorité | Statut | Notes |
+|----|-------------|------|----------|--------|-------|
+| SEC-01 | RH (Admin) possède toutes les permissions nécessaires (MANAGE_USERS, MANAGE_OFFERS, EVALUATE_CANDIDATES, MANAGE_INTERVIEWS, VIEW_STATS, etc.). | RH | Haute | À faire | RH = Admin. |
+| SEC-02 | Manager limité à validation candidatures et entretiens. | Manager | Haute | À faire | Pas de gestion offres/users. |
+| SEC-03 | Candidat limité à offres publiées, candidatures personnelles, profil. | Candidat | Haute | À faire | Filtrage par owner. |
+
+## Notes de dépendances
+- Auth doit précéder Candidatures/Offres pour sécuriser l’accès.
+- Parsing CV/Scoring doit être prêt pour CAND-01 (pré-remplissage) et scoring.
+- Entretiens dépend des statuts validés RH+Manager.
+- Notifications doivent s’intégrer aux événements clés (activation, soumission, statuts, entretiens).
+
+## Definition of Done (générale)
+- Entity/DTO/Service/Controller, mapping MapStruct, validations bean.
+- Sécurité: permissions appliquées via `@PreAuthorize`.
+- Tests unitaires et d’intégration clés.
+- API documentée (OpenAPI) et testable (Postman/Rest-assured).
+- Logs d’erreur clairs, gestion des exceptions (module shared).
+- Données conformes au schéma SQL (noms de colonnes, enums en STRING, UUID pgcrypto).

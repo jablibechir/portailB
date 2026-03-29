@@ -81,6 +81,7 @@ public class CandidatureService {
                 .candidat(candidat)
                 .offre(offre)
                 .statut(StatutCandidature.soumise)
+                .lettreMotivation(request.lettreMotivation())
                 .build();
 
         Candidature saved = candidatureRepository.save(candidature);

@@ -19,6 +19,7 @@ public record OffreResponse(
         String statut,
         String creeParNom,
         UUID creeParId,
-        LocalDateTime dateCreation
+        LocalDateTime dateCreation,
+        LocalDate dateExpiration
 ) {}
 

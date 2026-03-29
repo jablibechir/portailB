@@ -20,6 +20,7 @@ public record CandidatureResponse(
         LocalDate dateSoumission,
         String statut,
         Double scoreTotal,
+        String lettreMotivation,
         LocalDateTime dateCreation
 ) {}
 

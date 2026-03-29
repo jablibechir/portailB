@@ -2,6 +2,8 @@ package com.soprarh.portail.offer.dto;
 
 import jakarta.validation.constraints.Size;
 
+import java.time.LocalDate;
+
 /**
  * DTO pour modifier une offre d'emploi existante.
  * US-OFF-02: Modification du titre, description, competences.
@@ -20,6 +22,11 @@ public record UpdateOffreRequest(
         String experienceRequise,
 
         @Size(max = 200, message = "La formation ne peut pas depasser 200 caracteres")
-        String formationRequise
+        String formationRequise,
+
+        /**
+         * Date d'expiration de l'offre (optionnelle).
+         */
+        LocalDate dateExpiration
 ) {}
 

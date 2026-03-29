@@ -12,6 +12,11 @@ import java.util.UUID;
 public record CreateCandidatureRequest(
 
         @NotNull(message = "L'ID de l'offre est obligatoire")
-        UUID offreId
+        UUID offreId,
+
+        /**
+         * Lettre de motivation (optionnelle).
+         */
+        String lettreMotivation
 ) {}
 

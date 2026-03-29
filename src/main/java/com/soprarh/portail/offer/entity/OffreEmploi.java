@@ -21,7 +21,8 @@ import java.util.UUID;
  *   date_publication     date DEFAULT CURRENT_DATE,
  *   statut               varchar(20) DEFAULT 'brouillon',
  *   cree_par             uuid -> FK utilisateurs(id),
- *   date_creation        timestamp DEFAULT CURRENT_TIMESTAMP
+ *   date_creation        timestamp DEFAULT CURRENT_TIMESTAMP,
+ *   date_expiration      date
  * );
  */
 @Entity
@@ -108,5 +109,12 @@ public class OffreEmploi {
     @Column(name = "date_creation", updatable = false)
     @Builder.Default
     private LocalDateTime dateCreation = LocalDateTime.now();
+
+    /**
+     * Date d'expiration de l'offre.
+     * Colonne: date_expiration date (nullable)
+     */
+    @Column(name = "date_expiration")
+    private LocalDate dateExpiration;
 }
 

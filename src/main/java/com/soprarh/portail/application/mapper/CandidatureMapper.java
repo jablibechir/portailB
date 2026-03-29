@@ -30,6 +30,7 @@ public class CandidatureMapper {
                 c.getDateSoumission(),
                 c.getStatut() != null ? c.getStatut().name() : null,
                 c.getScoreTotal(),
+                c.getLettreMotivation(),
                 c.getDateCreation()
         );
     }
