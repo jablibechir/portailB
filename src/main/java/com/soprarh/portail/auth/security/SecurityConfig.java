@@ -67,6 +67,7 @@ public class SecurityConfig {
             // Regles d'autorisation
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/profil/photo/**").permitAll()
                 .anyRequest().authenticated()
             )
 

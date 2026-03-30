@@ -7,6 +7,7 @@ import com.soprarh.portail.user.entity.EtatUtilisateur;
 import com.soprarh.portail.user.entity.Utilisateur;
 import com.soprarh.portail.user.repository.RoleRepository;
 import com.soprarh.portail.user.repository.UtilisateurRepository;
+import com.soprarh.portail.user.service.ProfilService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,6 +47,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final UserDetailsService userDetailsService;
     private final EmailService emailService;
+    private final ProfilService profilService;
 
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
@@ -99,7 +101,11 @@ public class AuthService {
         Utilisateur saved = utilisateurRepository.save(utilisateur);
         log.info("Nouvel utilisateur enregistre (inactif) : id={}, type={}", saved.getId(), saved.getTypeUtilisateur());
 
-        // 6. Envoi de l'email de verification
+        // 6. Creer un profil vide pour le nouvel utilisateur
+        profilService.createProfilForNewUser(saved);
+        log.info("Profil vide cree pour utilisateur : id={}", saved.getId());
+
+        // 7. Envoi de l'email de verification
         emailService.sendVerificationEmail(
                 saved.getEmail(),
                 saved.getPrenom(),
