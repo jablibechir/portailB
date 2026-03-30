@@ -21,6 +21,18 @@ public record CandidatureResponse(
         String statut,
         Double scoreTotal,
         String lettreMotivation,
-        LocalDateTime dateCreation
-) {}
+        LocalDateTime dateCreation,
+        // Informations CV (US-CAND-02)
+        CvInfo cv
+) {
+    /**
+     * DTO imbrique pour les informations du CV.
+     */
+    public record CvInfo(
+            UUID id,
+            String fichier,
+            String fichierUrl,
+            LocalDate dateUpload
+    ) {}
+}
 

@@ -76,5 +76,18 @@ public interface CandidatureRepository extends JpaRepository<Candidature, UUID> 
         ORDER BY c.dateSoumission DESC
     """)
     List<Candidature> findAllOrderByDateDesc();
+
+    /**
+     * US-CAND-11: Trouve les candidatures transmises au Manager.
+     * Inclut les statuts: envoyee_manager, acceptee_manager, rejetee_manager, entretien_planifie
+     */
+    @Query("""
+        SELECT c FROM Candidature c
+        LEFT JOIN FETCH c.candidat
+        LEFT JOIN FETCH c.offre
+        WHERE c.statut IN :statuts
+        ORDER BY c.dateSoumission DESC
+    """)
+    List<Candidature> findByStatutIn(@Param("statuts") List<StatutCandidature> statuts);
 }
 

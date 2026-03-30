@@ -100,5 +100,12 @@ public class Candidature {
     @Column(name = "date_creation", updatable = false)
     @Builder.Default
     private LocalDateTime dateCreation = LocalDateTime.now();
+
+    /**
+     * CV associe a cette candidature (relation inverse).
+     * mappedBy indique que Cv possede la FK.
+     */
+    @OneToOne(mappedBy = "candidature", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private com.soprarh.portail.cv.entity.Cv cv;
 }
 

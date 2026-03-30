@@ -2,6 +2,7 @@ package com.soprarh.portail.application.mapper;
 
 import com.soprarh.portail.application.dto.CandidatureResponse;
 import com.soprarh.portail.application.entity.Candidature;
+import com.soprarh.portail.cv.entity.Cv;
 import org.springframework.stereotype.Component;
 
 /**
@@ -31,7 +32,23 @@ public class CandidatureMapper {
                 c.getStatut() != null ? c.getStatut().name() : null,
                 c.getScoreTotal(),
                 c.getLettreMotivation(),
-                c.getDateCreation()
+                c.getDateCreation(),
+                mapCvInfo(c.getCv())
+        );
+    }
+
+    /**
+     * Convertit un CV en CvInfo DTO.
+     */
+    private CandidatureResponse.CvInfo mapCvInfo(Cv cv) {
+        if (cv == null) {
+            return null;
+        }
+        return new CandidatureResponse.CvInfo(
+                cv.getId(),
+                cv.getFichier(),
+                "/api/candidatures/cv/" + cv.getId(),
+                cv.getDateUpload()
         );
     }
 }
