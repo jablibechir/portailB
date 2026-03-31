@@ -11,6 +11,7 @@ import com.soprarh.portail.offer.entity.OffreEmploi;
 import com.soprarh.portail.offer.entity.StatutOffre;
 import com.soprarh.portail.offer.repository.OffreEmploiRepository;
 import com.soprarh.portail.shared.BusinessException;
+import com.soprarh.portail.shared.service.NotificationService;
 import com.soprarh.portail.user.entity.Utilisateur;
 import com.soprarh.portail.user.repository.UtilisateurRepository;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +45,7 @@ public class CandidatureService {
     private final OffreEmploiRepository offreRepository;
     private final CvRepository cvRepository;
     private final CandidatureMapper candidatureMapper;
+    private final NotificationService notificationService;
 
     @Value("${app.upload.cv-dir:uploads/cvs}")
     private String cvDir;
@@ -107,6 +109,13 @@ public class CandidatureService {
             saveCvFile(saved, cvFile);
         }
 
+        // US-NOTIF-02: Notification candidat -> confirmation
+        notificationService.notifierCandidatureSoumise(saved);
+        // Notification RH -> nouvelle candidature recue
+        notificationService.notifierRhNouvelleCandidature(saved);
+        // Notification Manager -> nouvelle candidature sur offre
+        notificationService.notifierManagerNouvelleCandidatureOffre(saved);
+
         return candidatureMapper.toResponse(saved);
     }
 
@@ -154,6 +163,11 @@ public class CandidatureService {
         Candidature saved = candidatureRepository.save(candidature);
         log.info("Candidature transmise au manager: id={}", id);
 
+        // US-NOTIF-04: Notifier le candidat que sa candidature progresse
+        notificationService.notifierCandidatureEnvoyeeManager(saved);
+        // Notification Manager -> nouvelle candidature a evaluer
+        notificationService.notifierManagerCandidatureRecue(saved);
+
         return candidatureMapper.toResponse(saved);
     }
 
@@ -183,6 +197,9 @@ public class CandidatureService {
         candidature.setStatut(StatutCandidature.rejetee_rh);
         Candidature saved = candidatureRepository.save(candidature);
         log.info("Candidature rejetee par RH: id={}", id);
+
+        // US-NOTIF-03: Notifier le candidat du rejet
+        notificationService.notifierCandidatureRejeteeRh(saved);
 
         return candidatureMapper.toResponse(saved);
     }
@@ -265,6 +282,11 @@ public class CandidatureService {
         candidature.setStatut(StatutCandidature.rejetee_manager);
         Candidature saved = candidatureRepository.save(candidature);
         log.info("Candidature rejetee par manager: id={}", id);
+
+        // US-NOTIF-05: Notifier le candidat du rejet
+        notificationService.notifierCandidatureRejeteeManager(saved);
+        // Notification RH -> candidature retournee par le manager
+        notificationService.notifierRhCandidatureRetourneeManager(saved);
 
         return candidatureMapper.toResponse(saved);
     }

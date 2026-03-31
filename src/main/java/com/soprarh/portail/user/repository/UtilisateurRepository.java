@@ -1,11 +1,13 @@
 package com.soprarh.portail.user.repository;
 
+import com.soprarh.portail.user.entity.TypeUtilisateur;
 import com.soprarh.portail.user.entity.Utilisateur;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -50,5 +52,10 @@ public interface UtilisateurRepository extends JpaRepository<Utilisateur, UUID> 
      * Utilise lors de l'activation du compte.
      */
     Optional<Utilisateur> findByCodeVerification(String codeVerification);
-}
 
+    /**
+     * Trouve tous les utilisateurs d'un type donne (rh, manager, candidat).
+     * Utilise pour envoyer des notifications aux RH ou aux Managers.
+     */
+    List<Utilisateur> findByTypeUtilisateur(TypeUtilisateur typeUtilisateur);
+}

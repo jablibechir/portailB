@@ -3,6 +3,7 @@ package com.soprarh.portail.auth.service;
 import com.soprarh.portail.auth.dto.*;
 import com.soprarh.portail.auth.security.JwtProvider;
 import com.soprarh.portail.shared.BusinessException;
+import com.soprarh.portail.shared.service.NotificationService;
 import com.soprarh.portail.user.entity.EtatUtilisateur;
 import com.soprarh.portail.user.entity.Utilisateur;
 import com.soprarh.portail.user.repository.RoleRepository;
@@ -48,6 +49,7 @@ public class AuthService {
     private final UserDetailsService userDetailsService;
     private final EmailService emailService;
     private final ProfilService profilService;
+    private final NotificationService notificationService;
 
     @Value("${app.base-url:http://localhost:8080}")
     private String baseUrl;
@@ -113,6 +115,9 @@ public class AuthService {
                 baseUrl
         );
 
+        // Notification RH -> nouveau compte cree
+        notificationService.notifierRhNouveauCompte(saved);
+
         return toProfileResponse(saved);
     }
 
@@ -143,6 +148,9 @@ public class AuthService {
         utilisateur.setCodeVerification(null);
         utilisateur.setCodeExpiration(null);
         utilisateurRepository.save(utilisateur);
+
+        // US-NOTIF-01: Envoyer une notification de bienvenue
+        notificationService.notifierActivationCompte(utilisateur);
 
         log.info("Compte active avec succes : id={}", utilisateur.getId());
         return "Compte active avec succes. Vous pouvez maintenant vous connecter.";
