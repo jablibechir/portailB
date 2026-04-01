@@ -2,13 +2,17 @@ package com.soprarh.portail.user.service;
 
 import com.soprarh.portail.shared.BusinessException;
 import com.soprarh.portail.user.dto.ChangeRoleRequest;
+import com.soprarh.portail.user.dto.CreateUserRequest;
 import com.soprarh.portail.user.dto.UserResponse;
+import com.soprarh.portail.user.entity.EtatUtilisateur;
 import com.soprarh.portail.user.entity.Role;
 import com.soprarh.portail.user.entity.Utilisateur;
 import com.soprarh.portail.user.repository.RoleRepository;
 import com.soprarh.portail.user.repository.UtilisateurRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,19 +27,58 @@ import java.util.stream.Collectors;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserService {
 
     private final UtilisateurRepository utilisateurRepository;
     private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final ProfilService profilService;
+
+    /**
+     * Creation d'un utilisateur par le RH.
+     * Le RH choisit le type (candidat, manager, rh).
+     * Le compte est cree directement comme actif (pas de verification email).
+     */
+    @Transactional
+    public UserResponse createUser(CreateUserRequest request) {
+        // 1. Unicite de l'email
+        if (utilisateurRepository.existsByEmail(request.email())) {
+            throw new BusinessException(
+                    "Un compte existe deja avec cet email.",
+                    HttpStatus.CONFLICT);
+        }
+
+        // 2. Recherche du role correspondant au type choisi par le RH
+        String nomRole = request.typeUtilisateur().name().toUpperCase();
+        Role role = roleRepository.findByNom(nomRole)
+                .orElseThrow(() -> new BusinessException(
+                        "Role non trouve : " + nomRole,
+                        HttpStatus.INTERNAL_SERVER_ERROR));
+
+        // 3. Creer l'utilisateur — actif directement
+        Utilisateur utilisateur = Utilisateur.builder()
+                .nom(request.nom())
+                .prenom(request.prenom())
+                .email(request.email())
+                .motDePasse(passwordEncoder.encode(request.motDePasse()))
+                .typeUtilisateur(request.typeUtilisateur())
+                .etat(EtatUtilisateur.actif)
+                .roles(Set.of(role))
+                .build();
+
+        Utilisateur saved = utilisateurRepository.save(utilisateur);
+        log.info("Utilisateur cree par RH : id={}, type={}", saved.getId(), saved.getTypeUtilisateur());
+
+        // 4. Creer un profil vide
+        profilService.createProfilForNewUser(saved);
+
+        return mapToResponse(saved);
+    }
 
     /**
      * Change le role d'un utilisateur.
      * Valide que l'utilisateur existe et que le role est valide.
-     *
-     * @param userId ID de l'utilisateur
-     * @param request contient le nom du nouveau role
-     * @return UserResponse avec les informations mises a jour
-     * @throws BusinessException si l'utilisateur ou le role n'existe pas
      */
     @Transactional
     public UserResponse changeUserRole(UUID userId, ChangeRoleRequest request) {

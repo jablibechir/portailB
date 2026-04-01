@@ -72,7 +72,7 @@ class AuthControllerTest {
         @DisplayName("Retourne 201 CREATED avec le profil")
         void register_returns201() {
             RegisterRequest request = new RegisterRequest(
-                    "Dupont", "Jean", "jean@test.com", "password123", TypeUtilisateur.candidat);
+                    "Dupont", "Jean", "jean@test.com", "password123");
             when(authService.register(any())).thenReturn(profileResponse);
 
             ResponseEntity<ApiResponse<UserProfileResponse>> response =
@@ -89,7 +89,7 @@ class AuthControllerTest {
         @DisplayName("Appelle authService.register() exactement une fois")
         void register_callsService() {
             RegisterRequest request = new RegisterRequest(
-                    "Dupont", "Jean", "jean@test.com", "password123", TypeUtilisateur.candidat);
+                    "Dupont", "Jean", "jean@test.com", "password123");
             when(authService.register(any())).thenReturn(profileResponse);
 
             authController.register(request);

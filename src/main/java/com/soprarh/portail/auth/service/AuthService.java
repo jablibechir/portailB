@@ -5,6 +5,7 @@ import com.soprarh.portail.auth.security.JwtProvider;
 import com.soprarh.portail.shared.BusinessException;
 import com.soprarh.portail.shared.service.NotificationService;
 import com.soprarh.portail.user.entity.EtatUtilisateur;
+import com.soprarh.portail.user.entity.TypeUtilisateur;
 import com.soprarh.portail.user.entity.Utilisateur;
 import com.soprarh.portail.user.repository.RoleRepository;
 import com.soprarh.portail.user.repository.UtilisateurRepository;
@@ -75,8 +76,8 @@ public class AuthService {
             );
         }
 
-        // 2. Recherche du role correspondant au type
-        String nomRole = request.typeUtilisateur().name().toUpperCase();
+        // 2. Inscription publique = toujours CANDIDAT
+        String nomRole = "CANDIDAT";
         var role = roleRepository.findByNom(nomRole)
                 .orElseThrow(() -> new BusinessException(
                         "Role non trouve en base : " + nomRole,
@@ -92,7 +93,7 @@ public class AuthService {
                 .prenom(request.prenom())
                 .email(request.email())
                 .motDePasse(passwordEncoder.encode(request.motDePasse()))
-                .typeUtilisateur(request.typeUtilisateur())
+                .typeUtilisateur(TypeUtilisateur.candidat)
                 .etat(EtatUtilisateur.inactif)
                 .codeVerification(verificationCode)
                 .codeExpiration(LocalDateTime.now().plusHours(24))
@@ -227,4 +228,3 @@ public class AuthService {
         );
     }
 }
-

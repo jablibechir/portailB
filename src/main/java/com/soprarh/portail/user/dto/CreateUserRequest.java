@@ -1,15 +1,16 @@
-package com.soprarh.portail.auth.dto;
+package com.soprarh.portail.user.dto;
 
+import com.soprarh.portail.user.entity.TypeUtilisateur;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 /**
- * DTO de requete pour l'inscription publique d'un candidat.
- * L'inscription publique cree toujours un compte de type "candidat".
- * Seul le RH peut creer des comptes manager ou rh via la gestion des utilisateurs.
+ * DTO pour la creation d'un utilisateur par le RH.
+ * Contrairement au register public, ici le RH choisit le type (candidat, manager, rh).
  */
-public record RegisterRequest(
+public record CreateUserRequest(
 
         @NotBlank(message = "Le nom est obligatoire")
         @Size(max = 100, message = "Le nom ne peut pas depasser 100 caracteres")
@@ -26,5 +27,9 @@ public record RegisterRequest(
 
         @NotBlank(message = "Le mot de passe est obligatoire")
         @Size(min = 8, message = "Le mot de passe doit contenir au moins 8 caracteres")
-        String motDePasse
+        String motDePasse,
+
+        @NotNull(message = "Le type utilisateur est obligatoire")
+        TypeUtilisateur typeUtilisateur
 ) {}
+

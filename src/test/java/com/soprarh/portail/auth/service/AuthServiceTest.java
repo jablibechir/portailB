@@ -3,9 +3,11 @@ package com.soprarh.portail.auth.service;
 import com.soprarh.portail.auth.dto.*;
 import com.soprarh.portail.auth.security.JwtProvider;
 import com.soprarh.portail.shared.BusinessException;
+import com.soprarh.portail.shared.service.NotificationService;
 import com.soprarh.portail.user.entity.*;
 import com.soprarh.portail.user.repository.RoleRepository;
 import com.soprarh.portail.user.repository.UtilisateurRepository;
+import com.soprarh.portail.user.service.ProfilService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -44,6 +46,8 @@ class AuthServiceTest {
     @Mock private AuthenticationManager authenticationManager;
     @Mock private UserDetailsService userDetailsService;
     @Mock private EmailService emailService;
+    @Mock private ProfilService profilService;
+    @Mock private NotificationService notificationService;
 
     @InjectMocks
     private AuthService authService;
@@ -92,7 +96,7 @@ class AuthServiceTest {
         @DisplayName("Succes : nouvel utilisateur cree et profil retourne")
         void register_success() {
             RegisterRequest request = new RegisterRequest(
-                    "Dupont", "Jean", "jean@test.com", "password123", TypeUtilisateur.candidat
+                    "Dupont", "Jean", "jean@test.com", "password123"
             );
 
             when(utilisateurRepository.existsByEmail("jean@test.com")).thenReturn(false);
@@ -116,7 +120,7 @@ class AuthServiceTest {
         @DisplayName("Echec : email deja utilise -> 409 CONFLICT")
         void register_emailAlreadyExists() {
             RegisterRequest request = new RegisterRequest(
-                    "Dupont", "Jean", "jean@test.com", "password123", TypeUtilisateur.candidat
+                    "Dupont", "Jean", "jean@test.com", "password123"
             );
 
             when(utilisateurRepository.existsByEmail("jean@test.com")).thenReturn(true);
@@ -136,7 +140,7 @@ class AuthServiceTest {
         @DisplayName("Echec : role introuvable en base -> 500")
         void register_roleNotFound() {
             RegisterRequest request = new RegisterRequest(
-                    "Dupont", "Jean", "jean@test.com", "password123", TypeUtilisateur.candidat
+                    "Dupont", "Jean", "jean@test.com", "password123"
             );
 
             when(utilisateurRepository.existsByEmail("jean@test.com")).thenReturn(false);
@@ -154,7 +158,7 @@ class AuthServiceTest {
         @DisplayName("Le mot de passe n'est jamais retourne dans la reponse")
         void register_passwordNeverExposed() {
             RegisterRequest request = new RegisterRequest(
-                    "Dupont", "Jean", "jean@test.com", "password123", TypeUtilisateur.candidat
+                    "Dupont", "Jean", "jean@test.com", "password123"
             );
 
             when(utilisateurRepository.existsByEmail(any())).thenReturn(false);
