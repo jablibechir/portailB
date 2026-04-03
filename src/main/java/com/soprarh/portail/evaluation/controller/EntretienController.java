@@ -20,14 +20,19 @@ import java.util.UUID;
  * Controller REST pour la gestion des entretiens.
  *
  * Endpoints RH :
- *   POST  /api/entretiens                    -> planifier un entretien
+ *   POST  /api/entretiens                    -> planifier un entretien (US-ENT-01)
  *   GET   /api/entretiens/candidature/{id}   -> entretiens d'une candidature
  *   GET   /api/entretiens/mes-planifies      -> entretiens que j'ai planifies
  *   GET   /api/entretiens/{id}               -> detail d'un entretien
- *   PATCH /api/entretiens/{id}/statut        -> mettre a jour le statut
+ *   PATCH /api/entretiens/{id}/statut        -> confirmer/annuler un entretien (US-ENT-03)
+ *   GET   /api/entretiens/calendrier/rh      -> calendrier global RH (US-ENT-05)
+ *
+ * Endpoints Manager :
+ *   POST  /api/entretiens                    -> planifier un entretien (US-ENT-02, meme endpoint que RH)
+ *   GET   /api/entretiens/calendrier/manager -> calendrier Manager (US-ENT-05)
  *
  * Endpoints Candidat :
- *   GET   /api/entretiens/mes-a-venir        -> mes entretiens a venir
+ *   GET   /api/entretiens/mes-a-venir        -> mes entretiens a venir (US-ENT-04)
  */
 @RestController
 @RequestMapping("/api/entretiens")
@@ -123,7 +128,7 @@ public class EntretienController {
     // ==================== Endpoints Candidat ====================
 
     /**
-     * Consulter mes entretiens a venir.
+     * US-ENT-04: Consulter mes entretiens a venir (calendrier candidat).
      * GET /api/entretiens/mes-a-venir
      * Accessible par: Candidat (permission VIEW_CALENDAR)
      */
@@ -136,6 +141,38 @@ public class EntretienController {
 
         return ResponseEntity.ok(
                 ApiResponse.success(entretiens, "Mes entretiens a venir: " + entretiens.size()));
+    }
+
+    // ==================== Endpoints Calendrier RH/Manager ====================
+
+    /**
+     * US-ENT-05: Calendrier RH — tous les entretiens a venir.
+     * GET /api/entretiens/calendrier/rh
+     * Accessible par: RH (permission PLAN_INTERVIEWS)
+     */
+    @GetMapping("/calendrier/rh")
+    @PreAuthorize("hasAuthority('PLAN_INTERVIEWS')")
+    public ResponseEntity<ApiResponse<List<EntretienResponse>>> getCalendrierRh() {
+
+        List<EntretienResponse> entretiens = entretienService.getCalendrierRh();
+
+        return ResponseEntity.ok(
+                ApiResponse.success(entretiens, "Calendrier RH — entretiens a venir: " + entretiens.size()));
+    }
+
+    /**
+     * US-ENT-05: Calendrier Manager — entretiens a venir des candidatures Manager.
+     * GET /api/entretiens/calendrier/manager
+     * Accessible par: Manager (permission VIEW_CALENDAR)
+     */
+    @GetMapping("/calendrier/manager")
+    @PreAuthorize("hasAuthority('VIEW_CALENDAR')")
+    public ResponseEntity<ApiResponse<List<EntretienResponse>>> getCalendrierManager() {
+
+        List<EntretienResponse> entretiens = entretienService.getCalendrierManager();
+
+        return ResponseEntity.ok(
+                ApiResponse.success(entretiens, "Calendrier Manager — entretiens a venir: " + entretiens.size()));
     }
 }
 

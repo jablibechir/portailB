@@ -47,5 +47,35 @@ public interface EntretienRepository extends JpaRepository<Entretien, UUID> {
      * Trouve les entretiens par statut.
      */
     List<Entretien> findByStatutOrderByDateEntretienAsc(StatutEntretien statut);
+
+    /**
+     * Trouve tous les entretiens a venir (pour calendrier RH).
+     */
+    @Query("""
+        SELECT e FROM Entretien e
+        WHERE e.dateEntretien > :now
+        AND e.statut IN (:statuts)
+        ORDER BY e.dateEntretien ASC
+    """)
+    List<Entretien> findAllUpcomingEntretiens(
+            @Param("now") LocalDateTime now,
+            @Param("statuts") List<StatutEntretien> statuts);
+
+    /**
+     * Trouve les entretiens a venir pour les candidatures en statut Manager.
+     * Utilise par le Manager pour voir son calendrier.
+     */
+    @Query("""
+        SELECT e FROM Entretien e
+        JOIN e.candidature c
+        WHERE e.dateEntretien > :now
+        AND e.statut IN (:statuts)
+        AND c.statut IN (:statutsCandidature)
+        ORDER BY e.dateEntretien ASC
+    """)
+    List<Entretien> findUpcomingEntretiensByStatutCandidature(
+            @Param("now") LocalDateTime now,
+            @Param("statuts") List<StatutEntretien> statuts,
+            @Param("statutsCandidature") List<com.soprarh.portail.application.entity.StatutCandidature> statutsCandidature);
 }
 

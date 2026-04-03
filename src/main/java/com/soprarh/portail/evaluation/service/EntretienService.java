@@ -162,6 +162,38 @@ public class EntretienService {
     }
 
     /**
+     * US-ENT-05: Calendrier RH — tous les entretiens a venir.
+     * Le RH voit l'ensemble des entretiens planifies ou confirmes.
+     *
+     * @return liste de tous les entretiens a venir
+     */
+    @Transactional(readOnly = true)
+    public List<EntretienResponse> getCalendrierRh() {
+        List<StatutEntretien> statuts = List.of(StatutEntretien.planifie, StatutEntretien.confirme);
+        List<Entretien> entretiens = entretienRepository
+                .findAllUpcomingEntretiens(LocalDateTime.now(), statuts);
+        return entretienMapper.toResponseList(entretiens);
+    }
+
+    /**
+     * US-ENT-05: Calendrier Manager — entretiens a venir des candidatures Manager.
+     * Le Manager voit les entretiens des candidatures qui lui sont rattachees.
+     *
+     * @return liste des entretiens a venir pour le Manager
+     */
+    @Transactional(readOnly = true)
+    public List<EntretienResponse> getCalendrierManager() {
+        List<StatutEntretien> statuts = List.of(StatutEntretien.planifie, StatutEntretien.confirme);
+        List<StatutCandidature> statutsCandidature = List.of(
+                StatutCandidature.acceptee_manager,
+                StatutCandidature.entretien_planifie
+        );
+        List<Entretien> entretiens = entretienRepository
+                .findUpcomingEntretiensByStatutCandidature(LocalDateTime.now(), statuts, statutsCandidature);
+        return entretienMapper.toResponseList(entretiens);
+    }
+
+    /**
      * Mettre a jour le statut d'un entretien.
      *
      * @param id ID de l'entretien

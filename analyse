@@ -1,0 +1,418 @@
+================================================================================
+                    PORTAIL RH - BACKEND API ENDPOINTS
+================================================================================
+
+Application Settings:
+  Base URL ............. http://localhost:8080
+  CORS Origins ......... http://localhost:5173
+  JWT Access Token ..... 86400000 ms (24 hours)
+  JWT Refresh Token .... 604800000 ms (7 days)
+
+================================================================================
+1. AUTHENTICATION  —  /api/auth
+   Controller: src/main/java/com/soprarh/portail/auth/controller/AuthController.java
+================================================================================
+
+POST   /api/auth/register
+       Body: RegisterRequest (email, password, firstName, lastName)
+       Auth: Public
+       → Crée un nouveau compte utilisateur (inactif). Un email de vérification est envoyé.
+         Réponse: 201 Created + UserProfileResponse
+
+GET    /api/auth/verify?code={code}
+       Query: code (String)
+       Auth: Public
+       → Vérifie l'email et active le compte via le code reçu par email.
+         Réponse: 200 OK + message de succès
+
+POST   /api/auth/login
+       Body: LoginRequest (email, password)
+       Auth: Public
+       → Authentifie l'utilisateur (le compte doit être vérifié/actif).
+         Réponse: 200 OK + AuthResponse (accessToken, refreshToken)
+
+POST   /api/auth/refresh
+       Body: RefreshTokenRequest (refreshToken)
+       Auth: Public
+       → Renouvelle le token d'accès via le refresh token (stateless).
+         Réponse: 200 OK + AuthResponse (nouveaux tokens)
+
+GET    /api/auth/me
+       Header: Authorization: Bearer {token}
+       Auth: Authentifié
+       → Récupère le profil de l'utilisateur connecté.
+         Réponse: 200 OK + UserProfileResponse
+
+================================================================================
+2. UTILISATEURS  —  /api/users
+   Controller: src/main/java/com/soprarh/portail/user/controller/UserController.java
+   Auth: Tous les endpoints nécessitent une authentification
+================================================================================
+
+POST   /api/users
+       Body: CreateUserRequest (email, password, firstName, lastName, userType: CANDIDAT|MANAGER|RH)
+       Permission: MANAGE_USERS
+       → Crée un nouvel utilisateur (RH uniquement). Compte créé comme actif.
+         Réponse: 201 Created + UserResponse
+
+PUT    /api/users/{id}/role
+       Path: id (UUID)
+       Body: ChangeRoleRequest (role: ADMIN|RH|MANAGER|CANDIDAT)
+       Permission: MANAGE_USERS
+       → Change le rôle d'un utilisateur.
+         Réponse: 200 OK + UserResponse mis à jour
+
+================================================================================
+3. PROFIL  —  /api/profil
+   Controller: src/main/java/com/soprarh/portail/user/controller/ProfilController.java
+================================================================================
+
+GET    /api/profil
+       Header: Authorization: Bearer {token}
+       Auth: Authentifié
+       → Récupère le profil complet de l'utilisateur connecté (US-PROFIL-01).
+         Réponse: 200 OK + ProfilResponse
+
+PUT    /api/profil
+       Body: UpdateProfilRequest (firstName, lastName, email, phone, address, title, bio, skills, experience, etc.)
+       Auth: Authentifié
+       → Met à jour le profil de l'utilisateur connecté (US-PROFIL-02).
+         Réponse: 200 OK + ProfilResponse mis à jour
+
+POST   /api/profil/photo
+       Multipart: file (image, max 10MB)
+       Auth: Authentifié
+       → Upload de la photo de profil (US-PROFIL-03). Content-Type: multipart/form-data.
+         Réponse: 200 OK + ProfilResponse
+
+GET    /api/profil/photo/{filename}
+       Path: filename (String)
+       Auth: Public
+       → Récupère la photo de profil (affichage inline).
+         Réponse: 200 OK + image avec Content-Type approprié
+
+================================================================================
+4. OFFRES D'EMPLOI  —  /api/offres
+   Controller: src/main/java/com/soprarh/portail/offer/controller/OffreController.java
+   Auth: Tous les endpoints nécessitent une authentification
+================================================================================
+
+POST   /api/offres
+       Body: CreateOffreRequest (title, description, experience, formation, workType, location, salary, deadline, etc.)
+       Permission: MANAGE_OFFERS
+       → Crée une offre d'emploi (US-OFF-01).
+         Réponse: 201 Created + OffreResponse
+
+PUT    /api/offres/{id}
+       Path: id (UUID)
+       Body: UpdateOffreRequest (champs modifiés de l'offre)
+       Permission: MANAGE_OFFERS
+       → Met à jour une offre d'emploi (US-OFF-02).
+         Réponse: 200 OK + OffreResponse
+
+DELETE /api/offres/{id}
+       Path: id (UUID)
+       Permission: MANAGE_OFFERS
+       → Supprime une offre d'emploi (US-OFF-03).
+         Réponse: 200 OK + message de succès
+
+PATCH  /api/offres/{id}/statut
+       Path: id (UUID)
+       Body: ChangeStatutRequest (newStatus: DRAFT|PUBLISHED|CLOSED)
+       Permission: MANAGE_OFFERS
+       → Change le statut d'une offre (US-OFF-04).
+         Réponse: 200 OK + OffreResponse
+
+GET    /api/offres/admin
+       Permission: MANAGE_OFFERS
+       → Récupère toutes les offres (tous statuts) pour la vue admin.
+         Réponse: 200 OK + List<OffreResponse>
+
+GET    /api/offres/admin/{id}
+       Path: id (UUID)
+       Permission: MANAGE_OFFERS
+       → Récupère une offre spécifique par ID pour édition.
+         Réponse: 200 OK + OffreResponse
+
+GET    /api/offres
+       Query: keyword (optionnel), experience (optionnel), formation (optionnel)
+       Permission: VIEW_OFFERS
+       → Recherche les offres publiées (US-OFF-05).
+         Réponse: 200 OK + List<OffreResponse>
+
+GET    /api/offres/{id}
+       Path: id (UUID)
+       Permission: VIEW_OFFERS
+       → Récupère les détails d'une offre publiée.
+         Réponse: 200 OK + OffreResponse
+
+================================================================================
+5. CANDIDATURES  —  /api/candidatures
+   Controller: src/main/java/com/soprarh/portail/application/controller/CandidatureController.java
+   Auth: Tous les endpoints nécessitent une authentification
+================================================================================
+
+POST   /api/candidatures
+       Multipart: offreId (UUID, requis), lettreMotivation (String, optionnel), cv (MultipartFile, optionnel, max 10MB)
+       Permission: APPLY_OFFERS
+       → Dépose une candidature avec CV optionnel (US-CAND-01/02). Content-Type: multipart/form-data.
+         Réponse: 201 Created + CandidatureResponse
+
+GET    /api/candidatures/mes
+       Header: Authorization: Bearer {token}
+       Permission: APPLY_OFFERS
+       → Récupère les candidatures du candidat connecté.
+         Réponse: 200 OK + List<CandidatureResponse>
+
+GET    /api/candidatures
+       Query: tri (optionnel, "date"|"score", défaut: "date")
+       Permission: EVALUATE_CANDIDATES
+       → Liste toutes les candidatures.
+         Réponse: 200 OK + List<CandidatureResponse>
+
+GET    /api/candidatures/filtrer
+       Query: statut (optionnel), scoreMin (optionnel, Double), scoreMax (optionnel, Double)
+       Permission: EVALUATE_CANDIDATES
+       → Filtre les candidatures par statut et score.
+         Réponse: 200 OK + List<CandidatureResponse>
+
+GET    /api/candidatures/{id}
+       Path: id (UUID)
+       Permission: EVALUATE_CANDIDATES
+       → Récupère les détails d'une candidature.
+         Réponse: 200 OK + CandidatureResponse
+
+POST   /api/candidatures/{id}/evaluer
+       Path: id (UUID)
+       Permission: EVALUATE_CANDIDATES
+       → Passe une candidature en évaluation RH.
+         Réponse: 200 OK + CandidatureResponse
+
+POST   /api/candidatures/{id}/transmettre
+       Path: id (UUID)
+       Permission: EVALUATE_CANDIDATES
+       → Transmet la candidature au manager (US-CAND-07).
+         Réponse: 200 OK + CandidatureResponse
+
+POST   /api/candidatures/{id}/rejeter-rh
+       Path: id (UUID)
+       Permission: EVALUATE_CANDIDATES
+       → Rejet de la candidature par le RH (US-CAND-10).
+         Réponse: 200 OK + CandidatureResponse
+
+PATCH  /api/candidatures/{id}/statut
+       Path: id (UUID)
+       Body: ChangeStatutCandidatureRequest (newStatus)
+       Permission: EVALUATE_CANDIDATES
+       → Change le statut d'une candidature (générique).
+         Réponse: 200 OK + CandidatureResponse
+
+POST   /api/candidatures/{id}/valider-manager
+       Path: id (UUID)
+       Permission: VALIDATE_CANDIDATES
+       → Validation de la candidature par le manager (US-CAND-08).
+         Réponse: 200 OK + CandidatureResponse
+
+POST   /api/candidatures/{id}/rejeter-manager
+       Path: id (UUID)
+       Permission: VALIDATE_CANDIDATES
+       → Rejet de la candidature par le manager (US-CAND-09).
+         Réponse: 200 OK + CandidatureResponse
+
+GET    /api/candidatures/manager
+       Header: Authorization: Bearer {token}
+       Permission: VALIDATE_CANDIDATES
+       → Récupère les candidatures transmises au manager (US-CAND-11).
+         Réponse: 200 OK + List<CandidatureResponse>
+
+GET    /api/candidatures/cv/{id}
+       Path: id (UUID)
+       Permission: EVALUATE_CANDIDATES ou VALIDATE_CANDIDATES
+       → Télécharge le CV en pièce jointe.
+         Réponse: 200 OK + fichier avec Content-Disposition: attachment
+
+================================================================================
+6. ÉVALUATIONS  —  /api/evaluations
+   Controller: src/main/java/com/soprarh/portail/evaluation/controller/EvaluationController.java
+   Auth: Tous les endpoints nécessitent une authentification
+================================================================================
+
+POST   /api/evaluations/rh
+       Body: CreateEvaluationRequest (candidatureId, score, comments, etc.)
+       Permission: EVALUATE_CANDIDATES
+       → Crée une évaluation RH (US-EVAL-01).
+         Réponse: 201 Created + EvaluationResponse
+
+POST   /api/evaluations/manager
+       Body: CreateEvaluationRequest (candidatureId, score, comments, etc.)
+       Permission: VALIDATE_CANDIDATES
+       → Crée une évaluation manager (US-EVAL-02).
+         Réponse: 201 Created + EvaluationResponse
+
+GET    /api/evaluations/candidature/{candidatureId}
+       Path: candidatureId (UUID)
+       Permission: EVALUATE_CANDIDATES
+       → Récupère toutes les évaluations d'une candidature (US-EVAL-03).
+         Réponse: 200 OK + List<EvaluationResponse>
+
+GET    /api/evaluations/mes
+       Header: Authorization: Bearer {token}
+       Permission: EVALUATE_CANDIDATES
+       → Récupère les évaluations créées par l'utilisateur connecté.
+         Réponse: 200 OK + List<EvaluationResponse>
+
+GET    /api/evaluations/{id}
+       Path: id (UUID)
+       Permission: EVALUATE_CANDIDATES
+       → Récupère une évaluation spécifique par ID.
+         Réponse: 200 OK + EvaluationResponse
+
+================================================================================
+7. ENTRETIENS  —  /api/entretiens
+   Controller: src/main/java/com/soprarh/portail/evaluation/controller/EntretienController.java
+   Auth: Tous les endpoints nécessitent une authentification
+================================================================================
+
+POST   /api/entretiens
+       Body: CreateEntretienRequest (candidatureId, dateHeure, lieu, type, interviewer, notes, etc.)
+       Permission: PLAN_INTERVIEWS
+       → Planifie un entretien (US-ENT-01/02).
+         Réponse: 201 Created + EntretienResponse
+
+GET    /api/entretiens/candidature/{candidatureId}
+       Path: candidatureId (UUID)
+       Permission: EVALUATE_CANDIDATES
+       → Récupère les entretiens d'une candidature.
+         Réponse: 200 OK + List<EntretienResponse>
+
+GET    /api/entretiens/mes-planifies
+       Header: Authorization: Bearer {token}
+       Permission: PLAN_INTERVIEWS
+       → Récupère les entretiens planifiés par l'utilisateur RH.
+         Réponse: 200 OK + List<EntretienResponse>
+
+GET    /api/entretiens/{id}
+       Path: id (UUID)
+       Permission: EVALUATE_CANDIDATES
+       → Récupère les détails d'un entretien.
+         Réponse: 200 OK + EntretienResponse
+
+PATCH  /api/entretiens/{id}/statut?statut={statut}
+       Path: id (UUID)
+       Query: statut (SCHEDULED|CONFIRMED|CANCELLED)
+       Permission: PLAN_INTERVIEWS
+       → Met à jour le statut de l'entretien (confirmer/annuler) (US-ENT-03).
+         Réponse: 200 OK + EntretienResponse
+
+GET    /api/entretiens/mes-a-venir
+       Header: Authorization: Bearer {token}
+       Permission: VIEW_CALENDAR
+       → Récupère les entretiens à venir du candidat (US-ENT-04).
+         Réponse: 200 OK + List<EntretienResponse>
+
+GET    /api/entretiens/calendrier/rh
+       Header: Authorization: Bearer {token}
+       Permission: PLAN_INTERVIEWS
+       → Calendrier RH — tous les entretiens à venir (US-ENT-05).
+         Réponse: 200 OK + List<EntretienResponse>
+
+GET    /api/entretiens/calendrier/manager
+       Header: Authorization: Bearer {token}
+       Permission: VIEW_CALENDAR
+       → Calendrier manager — entretiens à venir des candidats du manager (US-ENT-05).
+         Réponse: 200 OK + List<EntretienResponse>
+
+================================================================================
+8. NOTIFICATIONS  —  /api/notifications
+   Controller: src/main/java/com/soprarh/portail/shared/controller/NotificationController.java
+   Auth: Tous les endpoints nécessitent une authentification
+================================================================================
+
+GET    /api/notifications
+       Header: Authorization: Bearer {token}
+       Permission: VIEW_NOTIFICATIONS
+       → Récupère toutes les notifications de l'utilisateur (US-NOTIF-07).
+         Réponse: 200 OK + List<NotificationResponse>
+
+GET    /api/notifications/non-lues
+       Header: Authorization: Bearer {token}
+       Permission: VIEW_NOTIFICATIONS
+       → Récupère uniquement les notifications non lues.
+         Réponse: 200 OK + List<NotificationResponse>
+
+GET    /api/notifications/count
+       Header: Authorization: Bearer {token}
+       Permission: VIEW_NOTIFICATIONS
+       → Récupère le nombre de notifications non lues.
+         Réponse: 200 OK + Long
+
+PUT    /api/notifications/{id}/lire
+       Path: id (UUID)
+       Permission: VIEW_NOTIFICATIONS
+       → Marque une notification comme lue (US-NOTIF-08).
+         Réponse: 200 OK + NotificationResponse
+
+PUT    /api/notifications/lire-toutes
+       Header: Authorization: Bearer {token}
+       Permission: VIEW_NOTIFICATIONS
+       → Marque toutes les notifications comme lues (US-NOTIF-08).
+         Réponse: 200 OK + Integer (nombre de notifications marquées)
+
+================================================================================
+                         RÉSUMÉ DES PERMISSIONS
+================================================================================
+
+Endpoints publics (sans authentification):
+  - POST   /api/auth/register
+  - GET    /api/auth/verify
+  - POST   /api/auth/login
+  - POST   /api/auth/refresh
+  - GET    /api/profil/photo/{filename}
+
+Permissions par rôle:
+  MANAGE_USERS ........... Gestion des utilisateurs (création, changement de rôle)
+  MANAGE_OFFERS .......... Gestion des offres (CRUD + changement de statut)
+  VIEW_OFFERS ............ Consultation des offres publiées
+  APPLY_OFFERS ........... Postuler aux offres
+  EVALUATE_CANDIDATES .... Évaluation RH des candidatures et entretiens
+  VALIDATE_CANDIDATES .... Validation manager des candidatures
+  PLAN_INTERVIEWS ........ Planification des entretiens (RH)
+  VIEW_CALENDAR .......... Consultation du calendrier (candidats & managers)
+  VIEW_NOTIFICATIONS ..... Consultation des notifications
+
+================================================================================
+                      FORMAT DE RÉPONSE STANDARD
+================================================================================
+
+Toutes les réponses utilisent le wrapper ApiResponse:
+{
+  "success": true,
+  "data": { /* objet de réponse */ },
+  "message": "Description de l'opération"
+}
+
+En cas d'erreur (géré par GlobalExceptionHandler):
+{
+  "success": false,
+  "data": null,
+  "message": "Description de l'erreur"
+}
+
+================================================================================
+                      CONFIGURATION FICHIERS
+================================================================================
+
+Upload fichiers:
+  - Taille max: 10 MB
+  - CVs stockés dans: uploads/cvs/
+  - Photos stockées dans: uploads/photos/
+
+CORS:
+  - Origines autorisées: http://localhost:5173
+  - Méthodes: GET, POST, PUT, PATCH, DELETE, OPTIONS
+  - Headers autorisés: Authorization, Content-Type
+  - Headers exposés: Authorization
+
+================================================================================
+               TOTAL: 48 ENDPOINTS (5 publics, 43 protégés)
+================================================================================
