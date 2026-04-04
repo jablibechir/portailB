@@ -83,8 +83,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/profil/photo/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/offres").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/offres/{id}").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/offres", "/api/offres/{id}").permitAll()
                 .anyRequest().authenticated()
             )
 
@@ -111,7 +110,7 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(allowedOrigins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        config.setAllowedHeaders(List.of("*"));
         config.setExposedHeaders(List.of("Authorization"));
         config.setAllowCredentials(false);
 
