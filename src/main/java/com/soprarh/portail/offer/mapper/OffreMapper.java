@@ -31,7 +31,8 @@ public class OffreMapper {
                 offre.getCreePar() != null ? (offre.getCreePar().getPrenom() + " " + offre.getCreePar().getNom()) : null,
                 offre.getCreePar() != null ? offre.getCreePar().getId() : null,
                 offre.getDateCreation(),
-                offre.getDateExpiration()
+                offre.getDateExpiration(),
+                offre.getTypeEmploi()
         );
     }
 }

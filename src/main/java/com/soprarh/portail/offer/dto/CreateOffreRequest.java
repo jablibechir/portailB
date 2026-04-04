@@ -34,6 +34,12 @@ public record CreateOffreRequest(
         /**
          * Date d'expiration de l'offre (optionnelle).
          */
-        LocalDate dateExpiration
+        LocalDate dateExpiration,
+
+        /**
+         * Type d'emploi: "Emploi à temps plein", "Stage", "Emploi à court terme", "Alternance".
+         * Si null, defaut = "Emploi à temps plein".
+         */
+        String typeEmploi
 ) {}
 

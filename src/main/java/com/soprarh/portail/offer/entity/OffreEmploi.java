@@ -116,5 +116,14 @@ public class OffreEmploi {
      */
     @Column(name = "date_expiration")
     private LocalDate dateExpiration;
+
+    /**
+     * Type d'emploi de l'offre.
+     * Colonne: type_emploi varchar(30) DEFAULT 'Emploi à temps plein'
+     * CHECK (type_emploi IN ('Emploi à temps plein','Stage','Emploi à court terme','Alternance'))
+     */
+    @Column(name = "type_emploi", length = 30)
+    @Builder.Default
+    private String typeEmploi = "Emploi à temps plein";
 }
 

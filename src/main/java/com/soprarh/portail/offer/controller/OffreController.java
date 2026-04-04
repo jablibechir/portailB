@@ -122,17 +122,25 @@ public class OffreController {
 
     /**
      * US-OFF-05: Filtrer les offres publiees.
-     * GET /api/offres?keyword=...&experience=...&formation=...
+     * GET /api/offres?keyword=...&experience=...&formation=...&days=7&typeEmploi=Stage
      * Accessible par: tous les utilisateurs authentifies (permission VIEW_OFFERS)
+     *
+     * @param keyword    mot-cle (titre, description, competences)
+     * @param experience filtre experience requise
+     * @param formation  filtre formation requise
+     * @param days       nombre de jours depuis la publication (7, 30, null = tous)
+     * @param typeEmploi filtre type d'emploi (ex: Stage, Alternance, null = tous)
      */
     @GetMapping
     @PreAuthorize("hasAuthority('VIEW_OFFERS')")
     public ResponseEntity<ApiResponse<List<OffreResponse>>> searchOffres(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String experience,
-            @RequestParam(required = false) String formation) {
+            @RequestParam(required = false) String formation,
+            @RequestParam(required = false) Integer days,
+            @RequestParam(required = false) String typeEmploi) {
 
-        OffreFilterRequest filter = new OffreFilterRequest(keyword, experience, formation);
+        OffreFilterRequest filter = new OffreFilterRequest(keyword, experience, formation, days, typeEmploi);
         List<OffreResponse> offres = offreService.searchOffresPubliees(filter);
 
         return ResponseEntity.ok(ApiResponse.success(offres, "Offres trouvees: " + offres.size()));

@@ -27,6 +27,12 @@ public record UpdateOffreRequest(
         /**
          * Date d'expiration de l'offre (optionnelle).
          */
-        LocalDate dateExpiration
+        LocalDate dateExpiration,
+
+        /**
+         * Type d'emploi (optionnel).
+         * Valeurs: "Emploi à temps plein", "Stage", "Emploi à court terme", "Alternance".
+         */
+        String typeEmploi
 ) {}
 

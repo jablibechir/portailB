@@ -135,9 +135,10 @@ GET    /api/offres/admin/{id}
          Réponse: 200 OK + OffreResponse
 
 GET    /api/offres
-       Query: keyword (optionnel), experience (optionnel), formation (optionnel)
+       Query: keyword (optionnel), experience (optionnel), formation (optionnel), days (optionnel, Integer: 7|30)
        Permission: VIEW_OFFERS
        → Recherche les offres publiées (US-OFF-05).
+         Filtres: mot-clé, expérience, formation, date de publication (7/30 derniers jours).
          Réponse: 200 OK + List<OffreResponse>
 
 GET    /api/offres/{id}

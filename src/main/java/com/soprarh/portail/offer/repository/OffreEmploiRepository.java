@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,11 +26,14 @@ public interface OffreEmploiRepository extends JpaRepository<OffreEmploi, UUID> 
 
     /**
      * Trouve les offres publiees avec filtres optionnels.
-     * US-OFF-05: Filtrer par mot-cle, experience, formation.
+     * US-OFF-05: Filtre par mot-cle, experience, formation, date de publication, type d'emploi.
      *
-     * @param keyword   mot-cle recherche dans titre, description, competences (peut etre null)
+     * @param statut     statut de l'offre (ex: publiee)
+     * @param keyword    mot-cle recherche dans titre, description, competences (peut etre null)
      * @param experience filtre sur experience_requise (peut etre null)
      * @param formation  filtre sur formation_requise (peut etre null)
+     * @param dateMin    date minimum de publication (peut etre null = pas de filtre date)
+     * @param typeEmploi filtre sur type_emploi (peut etre null = pas de filtre type)
      */
     @Query("""
     SELECT o FROM OffreEmploi o
@@ -40,13 +44,17 @@ public interface OffreEmploiRepository extends JpaRepository<OffreEmploi, UUID> 
          LOWER(o.competencesRequises) LIKE LOWER(CONCAT('%', CAST(:keyword AS text), '%')))
     AND (:experience IS NULL OR LOWER(o.experienceRequise) LIKE LOWER(CONCAT('%', CAST(:experience AS text), '%')))
     AND (:formation IS NULL OR LOWER(o.formationRequise) LIKE LOWER(CONCAT('%', CAST(:formation AS text), '%')))
+    AND (:dateMin IS NULL OR o.datePublication >= :dateMin)
+    AND (:typeEmploi IS NULL OR o.typeEmploi = :typeEmploi)
     ORDER BY o.datePublication DESC
 """)
     List<OffreEmploi> findByFilters(
             @Param("statut") StatutOffre statut,
             @Param("keyword") String keyword,
             @Param("experience") String experience,
-            @Param("formation") String formation);
+            @Param("formation") String formation,
+            @Param("dateMin") LocalDate dateMin,
+            @Param("typeEmploi") String typeEmploi);
     /**
      * Trouve toutes les offres creees par un utilisateur specifique.
      */

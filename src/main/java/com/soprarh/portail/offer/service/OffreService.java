@@ -61,6 +61,8 @@ public class OffreService {
                 .statut(statut)
                 .datePublication(statut == StatutOffre.publiee ? LocalDate.now() : null)
                 .dateExpiration(request.dateExpiration())
+                .typeEmploi(request.typeEmploi() != null && !request.typeEmploi().isBlank()
+                        ? request.typeEmploi() : "Emploi à temps plein")
                 .creePar(createur)
                 .build();
 
@@ -98,6 +100,9 @@ public class OffreService {
         }
         if (request.dateExpiration() != null) {
             offre.setDateExpiration(request.dateExpiration());
+        }
+        if (request.typeEmploi() != null && !request.typeEmploi().isBlank()) {
+            offre.setTypeEmploi(request.typeEmploi());
         }
 
         OffreEmploi saved = offreRepository.save(offre);
@@ -146,6 +151,7 @@ public class OffreService {
      * US-OFF-05: Filtrer les offres publiees.
      * Accessible aux candidats.
      * Retourne uniquement les offres avec statut = publiee.
+     * Filtres optionnels: keyword, experience, formation, days, typeEmploi.
      *
      * @param filter filtres optionnels
      * @return liste des offres correspondantes
@@ -158,9 +164,17 @@ public class OffreService {
                 ? filter.experience() : null;
         String formation = (filter != null && filter.formation() != null && !filter.formation().isBlank())
                 ? filter.formation() : null;
+        String typeEmploi = (filter != null && filter.typeEmploi() != null && !filter.typeEmploi().isBlank())
+                ? filter.typeEmploi() : null;
+
+        // Calcul de la date minimum de publication
+        LocalDate dateMin = null;
+        if (filter != null && filter.days() != null && filter.days() > 0) {
+            dateMin = LocalDate.now().minusDays(filter.days());
+        }
 
         List<OffreEmploi> offres = offreRepository.findByFilters(
-                StatutOffre.publiee, keyword, experience, formation);
+                StatutOffre.publiee, keyword, experience, formation, dateMin, typeEmploi);
 
         return offres.stream()
                 .map(offreMapper::toResponse)

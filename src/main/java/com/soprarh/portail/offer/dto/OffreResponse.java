@@ -20,6 +20,7 @@ public record OffreResponse(
         String creeParNom,
         UUID creeParId,
         LocalDateTime dateCreation,
-        LocalDate dateExpiration
+        LocalDate dateExpiration,
+        String typeEmploi
 ) {}
 
