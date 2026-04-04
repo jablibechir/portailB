@@ -118,12 +118,13 @@ public class OffreController {
         return ResponseEntity.ok(ApiResponse.success(offre));
     }
 
-    // ==================== Endpoints Candidat ====================
+    // ==================== Endpoints Publics (Candidat + Visiteur) ====================
 
     /**
      * US-OFF-05: Filtrer les offres publiees.
      * GET /api/offres?keyword=...&experience=...&formation=...&days=7&typeEmploi=Stage
-     * Accessible par: tous les utilisateurs authentifies (permission VIEW_OFFERS)
+     * Accessible par: TOUS (public, sans authentification).
+     * Retourne uniquement les offres publiees.
      *
      * @param keyword    mot-cle (titre, description, competences)
      * @param experience filtre experience requise
@@ -132,7 +133,6 @@ public class OffreController {
      * @param typeEmploi filtre type d'emploi (ex: Stage, Alternance, null = tous)
      */
     @GetMapping
-    @PreAuthorize("hasAuthority('VIEW_OFFERS')")
     public ResponseEntity<ApiResponse<List<OffreResponse>>> searchOffres(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String experience,
@@ -149,10 +149,9 @@ public class OffreController {
     /**
      * Recuperer une offre publiee par ID.
      * GET /api/offres/{id}
-     * Accessible par: tous les utilisateurs authentifies (permission VIEW_OFFERS)
+     * Accessible par: TOUS (public, sans authentification).
      */
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('VIEW_OFFERS')")
     public ResponseEntity<ApiResponse<OffreResponse>> getOffrePubliee(@PathVariable UUID id) {
         OffreResponse offre = offreService.getOffreById(id);
 

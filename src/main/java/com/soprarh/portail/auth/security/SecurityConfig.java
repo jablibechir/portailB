@@ -83,6 +83,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/profil/photo/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/offres").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/offres/{id}").permitAll()
                 .anyRequest().authenticated()
             )
 
