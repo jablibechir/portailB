@@ -1,5 +1,6 @@
 package com.soprarh.portail.user.dto;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
 
@@ -14,6 +15,7 @@ public record UserResponse(
         String email,
         String etat,
         String typeUtilisateur,
-        Set<String> roles
+        Set<String> roles,
+        LocalDateTime dateCreation
 ) {}
 

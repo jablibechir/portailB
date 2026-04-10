@@ -3,6 +3,7 @@ package com.soprarh.portail.user.controller;
 import com.soprarh.portail.shared.ApiResponse;
 import com.soprarh.portail.user.dto.ChangeRoleRequest;
 import com.soprarh.portail.user.dto.CreateUserRequest;
+import com.soprarh.portail.user.dto.UpdateUserRequest;
 import com.soprarh.portail.user.dto.UserResponse;
 import com.soprarh.portail.user.service.UserService;
 import jakarta.validation.Valid;
@@ -12,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -19,6 +21,7 @@ import java.util.UUID;
  * Endpoints accessibles par RH uniquement (permission MANAGE_USERS).
  *
  * Endpoints :
+ *   GET  /api/users           -> lister tous les utilisateurs
  *   POST /api/users           -> creer un utilisateur (RH choisit le type)
  *   PUT  /api/users/{id}/role -> changer le role d'un utilisateur
  */
@@ -28,6 +31,17 @@ import java.util.UUID;
 public class UserController {
 
     private final UserService userService;
+
+    /**
+     * Lister tous les utilisateurs.
+     * GET /api/users
+     */
+    @GetMapping
+    @PreAuthorize("hasAuthority('MANAGE_USERS')")
+    public ResponseEntity<ApiResponse<List<UserResponse>>> getAllUsers() {
+        List<UserResponse> users = userService.getAllUsers();
+        return ResponseEntity.ok(ApiResponse.success(users, "Utilisateurs trouves: " + users.size()));
+    }
 
     /**
      * Creer un nouvel utilisateur (RH uniquement).
@@ -65,6 +79,37 @@ public class UserController {
                 updatedUser,
                 "Role de l'utilisateur mis a jour avec succes"
         ));
+    }
+
+    /**
+     * Met a jour les informations d'un utilisateur.
+     *
+     * PUT /api/users/{id}
+     */
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('MANAGE_USERS')")
+    public ResponseEntity<ApiResponse<UserResponse>> updateUser(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateUserRequest request) {
+
+        UserResponse updatedUser = userService.updateUser(id, request);
+
+        return ResponseEntity.ok(ApiResponse.success(
+                updatedUser,
+                "Utilisateur mis a jour avec succes"
+        ));
+    }
+
+    /**
+     * Lister les managers actifs.
+     * GET /api/users/managers
+     * Accessible par: RH (permission EVALUATE_CANDIDATES)
+     */
+    @GetMapping("/managers")
+    @PreAuthorize("hasAuthority('EVALUATE_CANDIDATES')")
+    public ResponseEntity<ApiResponse<List<UserResponse>>> getManagers() {
+        List<UserResponse> managers = userService.getManagers();
+        return ResponseEntity.ok(ApiResponse.success(managers, "Managers trouves: " + managers.size()));
     }
 }
 

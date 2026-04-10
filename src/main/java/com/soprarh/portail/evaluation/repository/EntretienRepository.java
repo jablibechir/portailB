@@ -77,5 +77,22 @@ public interface EntretienRepository extends JpaRepository<Entretien, UUID> {
             @Param("now") LocalDateTime now,
             @Param("statuts") List<StatutEntretien> statuts,
             @Param("statutsCandidature") List<com.soprarh.portail.application.entity.StatutCandidature> statutsCandidature);
+
+    /**
+     * Trouve les entretiens a venir assignes a un manager specifique
+     * (planifie_par = managerId ou candidature.manager_id = managerId).
+     */
+    @Query("""
+        SELECT e FROM Entretien e
+        JOIN e.candidature c
+        WHERE e.dateEntretien > :now
+        AND e.statut IN (:statuts)
+        AND (e.planifiePar.id = :managerId OR c.manager.id = :managerId)
+        ORDER BY e.dateEntretien ASC
+    """)
+    List<Entretien> findUpcomingEntretiensByManagerId(
+            @Param("managerId") UUID managerId,
+            @Param("now") LocalDateTime now,
+            @Param("statuts") List<StatutEntretien> statuts);
 }
 

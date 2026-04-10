@@ -3,8 +3,10 @@ package com.soprarh.portail.user.service;
 import com.soprarh.portail.shared.BusinessException;
 import com.soprarh.portail.user.dto.ChangeRoleRequest;
 import com.soprarh.portail.user.dto.CreateUserRequest;
+import com.soprarh.portail.user.dto.UpdateUserRequest;
 import com.soprarh.portail.user.dto.UserResponse;
 import com.soprarh.portail.user.entity.EtatUtilisateur;
+import com.soprarh.portail.user.entity.TypeUtilisateur;
 import com.soprarh.portail.user.entity.Role;
 import com.soprarh.portail.user.entity.Utilisateur;
 import com.soprarh.portail.user.repository.RoleRepository;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -108,6 +111,71 @@ public class UserService {
     }
 
     /**
+     * Retourne la liste de tous les utilisateurs.
+     * Utilise par GET /api/users (RH uniquement).
+     */
+    @Transactional(readOnly = true)
+    public List<UserResponse> getAllUsers() {
+        return utilisateurRepository.findAll()
+                .stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Met a jour les informations d'un utilisateur (RH uniquement).
+     * PUT /api/users/{id}
+     */
+    @Transactional
+    public UserResponse updateUser(UUID userId, UpdateUserRequest request) {
+        Utilisateur utilisateur = utilisateurRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(
+                        "Utilisateur non trouve avec l'ID: " + userId,
+                        HttpStatus.NOT_FOUND));
+
+        // Verifier unicite email si change
+        if (!utilisateur.getEmail().equalsIgnoreCase(request.email())
+                && utilisateurRepository.existsByEmail(request.email())) {
+            throw new BusinessException(
+                    "Un compte existe deja avec cet email.",
+                    HttpStatus.CONFLICT);
+        }
+
+        // Verifier que le role existe
+        String roleName = request.roleName().toUpperCase();
+        Role newRole = roleRepository.findByNom(roleName)
+                .orElseThrow(() -> new BusinessException(
+                        "Role invalide: " + roleName + ". Roles valides: CANDIDAT, MANAGER, RH",
+                        HttpStatus.BAD_REQUEST));
+
+        utilisateur.setNom(request.nom());
+        utilisateur.setPrenom(request.prenom());
+        utilisateur.setEmail(request.email());
+        utilisateur.setEtat(request.etat());
+
+        Set<Role> newRoles = new HashSet<>();
+        newRoles.add(newRole);
+        utilisateur.setRoles(newRoles);
+
+        Utilisateur saved = utilisateurRepository.save(utilisateur);
+        log.info("Utilisateur mis a jour par RH : id={}", saved.getId());
+        return mapToResponse(saved);
+    }
+
+    /**
+     * Retourne la liste des managers actifs.
+     * Utilise par GET /api/users/managers.
+     */
+    @Transactional(readOnly = true)
+    public List<UserResponse> getManagers() {
+        return utilisateurRepository.findByTypeUtilisateur(TypeUtilisateur.manager)
+                .stream()
+                .filter(u -> u.getEtat() == EtatUtilisateur.actif)
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Convertit une entite Utilisateur en DTO UserResponse.
      */
     private UserResponse mapToResponse(Utilisateur utilisateur) {
@@ -122,7 +190,8 @@ public class UserService {
                 utilisateur.getEmail(),
                 utilisateur.getEtat().name(),
                 utilisateur.getTypeUtilisateur().name(),
-                roleNames
+                roleNames,
+                utilisateur.getDateCreation()
         );
     }
 }

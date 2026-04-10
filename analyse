@@ -49,6 +49,11 @@ GET    /api/auth/me
    Auth: Tous les endpoints nécessitent une authentification
 ================================================================================
 
+GET    /api/users
+       Permission: MANAGE_USERS
+       → Retourne la liste de tous les utilisateurs (RH uniquement).
+         Réponse: 200 OK + List<UserResponse>
+
 POST   /api/users
        Body: CreateUserRequest (email, password, firstName, lastName, userType: CANDIDAT|MANAGER|RH)
        Permission: MANAGE_USERS
@@ -135,15 +140,16 @@ GET    /api/offres/admin/{id}
          Réponse: 200 OK + OffreResponse
 
 GET    /api/offres
-       Query: keyword (optionnel), experience (optionnel), formation (optionnel), days (optionnel, Integer: 7|30)
-       Permission: VIEW_OFFERS
+       Query: keyword (optionnel), experience (optionnel), formation (optionnel),
+              days (optionnel, Integer: 7|30), typeEmploi (optionnel, String: "Stage"|"Alternance"|etc.)
+       Auth: Public (pas d'authentification requise)
        → Recherche les offres publiées (US-OFF-05).
-         Filtres: mot-clé, expérience, formation, date de publication (7/30 derniers jours).
+         Filtres: mot-clé, expérience, formation, date de publication (7/30 derniers jours), type d'emploi.
          Réponse: 200 OK + List<OffreResponse>
 
 GET    /api/offres/{id}
        Path: id (UUID)
-       Permission: VIEW_OFFERS
+       Auth: Public (pas d'authentification requise)
        → Récupère les détails d'une offre publiée.
          Réponse: 200 OK + OffreResponse
 
@@ -369,6 +375,8 @@ Endpoints publics (sans authentification):
   - POST   /api/auth/login
   - POST   /api/auth/refresh
   - GET    /api/profil/photo/{filename}
+  - GET    /api/offres
+  - GET    /api/offres/{id}
 
 Permissions par rôle:
   MANAGE_USERS ........... Gestion des utilisateurs (création, changement de rôle)
@@ -415,5 +423,5 @@ CORS:
   - Headers exposés: Authorization
 
 ================================================================================
-               TOTAL: 48 ENDPOINTS (5 publics, 43 protégés)
+               TOTAL: 49 ENDPOINTS (7 publics, 42 protégés)
 ================================================================================

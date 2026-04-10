@@ -33,7 +33,9 @@ public class CandidatureMapper {
                 c.getScoreTotal(),
                 c.getLettreMotivation(),
                 c.getDateCreation(),
-                mapCvInfo(c.getCv())
+                mapCvInfo(c.getCv()),
+                c.getManager() != null ? c.getManager().getId() : null,
+                c.getManager() != null ? (c.getManager().getPrenom() + " " + c.getManager().getNom()) : null
         );
     }
 

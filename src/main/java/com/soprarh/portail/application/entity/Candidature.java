@@ -107,5 +107,13 @@ public class Candidature {
      */
     @OneToOne(mappedBy = "candidature", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private com.soprarh.portail.cv.entity.Cv cv;
+
+    /**
+     * Manager a qui la candidature a ete transmise.
+     * FK: manager_id -> utilisateurs(id) ON DELETE SET NULL
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "manager_id")
+    private Utilisateur manager;
 }
 

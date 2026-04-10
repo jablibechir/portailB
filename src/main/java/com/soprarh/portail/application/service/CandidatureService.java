@@ -143,12 +143,14 @@ public class CandidatureService {
      * Regles metier:
      * - La candidature doit etre en statut "soumise" ou "en_evaluation_rh"
      * - Le statut passe a "envoyee_manager"
+     * - Un manager specifique doit etre designe
      *
      * @param id ID de la candidature
+     * @param managerId ID du manager a qui transmettre
      * @return la candidature mise a jour
      */
     @Transactional
-    public CandidatureResponse transmettreAuManager(UUID id) {
+    public CandidatureResponse transmettreAuManager(UUID id, UUID managerId) {
         Candidature candidature = findCandidatureOrThrow(id);
 
         // Verifier que le statut permet la transmission
@@ -159,9 +161,16 @@ public class CandidatureService {
                     HttpStatus.BAD_REQUEST);
         }
 
+        // Verifier que le manager existe et est bien un manager
+        Utilisateur manager = utilisateurRepository.findById(managerId)
+                .orElseThrow(() -> new BusinessException(
+                        "Manager non trouve avec l'ID: " + managerId,
+                        HttpStatus.NOT_FOUND));
+
         candidature.setStatut(StatutCandidature.envoyee_manager);
+        candidature.setManager(manager);
         Candidature saved = candidatureRepository.save(candidature);
-        log.info("Candidature transmise au manager: id={}", id);
+        log.info("Candidature transmise au manager: id={}, managerId={}", id, managerId);
 
         // US-NOTIF-04: Notifier le candidat que sa candidature progresse
         notificationService.notifierCandidatureEnvoyeeManager(saved);
@@ -293,12 +302,13 @@ public class CandidatureService {
 
     /**
      * US-CAND-11: Consulter les candidatures transmises au Manager.
-     * Retourne toutes les candidatures dans les statuts lies au Manager.
+     * Retourne uniquement les candidatures assignees a ce manager specifique.
      *
-     * @return liste des candidatures transmises au Manager
+     * @param managerId ID du manager connecte
+     * @return liste des candidatures assignees a ce manager
      */
     @Transactional(readOnly = true)
-    public List<CandidatureResponse> getCandidaturesManager() {
+    public List<CandidatureResponse> getCandidaturesManager(UUID managerId) {
         List<StatutCandidature> statutsManager = List.of(
                 StatutCandidature.envoyee_manager,
                 StatutCandidature.acceptee_manager,
@@ -306,7 +316,7 @@ public class CandidatureService {
                 StatutCandidature.entretien_planifie
         );
 
-        return candidatureRepository.findByStatutIn(statutsManager)
+        return candidatureRepository.findByManagerIdAndStatutIn(managerId, statutsManager)
                 .stream()
                 .map(candidatureMapper::toResponse)
                 .collect(Collectors.toList());

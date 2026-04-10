@@ -102,15 +102,16 @@ public class CandidatureController {
 
     /**
      * US-CAND-07: Transmettre une candidature au Manager.
-     * POST /api/candidatures/{id}/transmettre
+     * POST /api/candidatures/{id}/transmettre?managerId=...
      * Accessible par: RH (permission TRANSMIT_TO_MANAGER ou EVALUATE_CANDIDATES)
      */
     @PostMapping("/{id}/transmettre")
     @PreAuthorize("hasAuthority('EVALUATE_CANDIDATES')")
     public ResponseEntity<ApiResponse<CandidatureResponse>> transmettreAuManager(
-            @PathVariable UUID id) {
+            @PathVariable UUID id,
+            @RequestParam UUID managerId) {
 
-        CandidatureResponse candidature = candidatureService.transmettreAuManager(id);
+        CandidatureResponse candidature = candidatureService.transmettreAuManager(id, managerId);
 
         return ResponseEntity.ok(
                 ApiResponse.success(candidature, "Candidature transmise au manager avec succes"));
@@ -252,12 +253,14 @@ public class CandidatureController {
      * US-CAND-11: Consulter les candidatures transmises au Manager.
      * GET /api/candidatures/manager
      * Accessible par: Manager (permission VALIDATE_CANDIDATES)
+     * Filtre par le manager_id du manager connecte.
      */
     @GetMapping("/manager")
     @PreAuthorize("hasAuthority('VALIDATE_CANDIDATES')")
-    public ResponseEntity<ApiResponse<List<CandidatureResponse>>> getCandidaturesManager() {
+    public ResponseEntity<ApiResponse<List<CandidatureResponse>>> getCandidaturesManager(
+            @AuthenticationPrincipal Utilisateur currentUser) {
 
-        List<CandidatureResponse> candidatures = candidatureService.getCandidaturesManager();
+        List<CandidatureResponse> candidatures = candidatureService.getCandidaturesManager(currentUser.getId());
 
         return ResponseEntity.ok(
                 ApiResponse.success(candidatures, "Candidatures transmises au manager: " + candidatures.size()));

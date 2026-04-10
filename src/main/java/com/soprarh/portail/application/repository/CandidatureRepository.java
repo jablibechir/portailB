@@ -89,5 +89,20 @@ public interface CandidatureRepository extends JpaRepository<Candidature, UUID> 
         ORDER BY c.dateSoumission DESC
     """)
     List<Candidature> findByStatutIn(@Param("statuts") List<StatutCandidature> statuts);
+
+    /**
+     * Trouve les candidatures assignees a un manager specifique et dans les statuts donnes.
+     */
+    @Query("""
+        SELECT c FROM Candidature c
+        LEFT JOIN FETCH c.candidat
+        LEFT JOIN FETCH c.offre
+        WHERE c.manager.id = :managerId
+        AND c.statut IN :statuts
+        ORDER BY c.dateSoumission DESC
+    """)
+    List<Candidature> findByManagerIdAndStatutIn(
+            @Param("managerId") UUID managerId,
+            @Param("statuts") List<StatutCandidature> statuts);
 }
 

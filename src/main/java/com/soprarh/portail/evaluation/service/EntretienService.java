@@ -76,13 +76,22 @@ public class EntretienService {
                 .orElseThrow(() -> new BusinessException(
                         "Utilisateur non trouve.", HttpStatus.NOT_FOUND));
 
+        // 4b. Si un interviewer specifique est designe, l'utiliser
+        Utilisateur interviewer = planifiePar;
+        if (request.interviewerId() != null) {
+            interviewer = utilisateurRepository.findById(request.interviewerId())
+                    .orElseThrow(() -> new BusinessException(
+                            "Interviewer non trouve avec l'ID: " + request.interviewerId(),
+                            HttpStatus.NOT_FOUND));
+        }
+
         // 5. Parser le type d'entretien
         TypeEntretien type = parseType(request.type());
 
         // 6. Creer l'entretien
         Entretien entretien = Entretien.builder()
                 .candidature(candidature)
-                .planifiePar(planifiePar)
+                .planifiePar(interviewer)
                 .dateEntretien(request.dateEntretien())
                 .lieu(request.lieu())
                 .type(type)
@@ -176,20 +185,18 @@ public class EntretienService {
     }
 
     /**
-     * US-ENT-05: Calendrier Manager — entretiens a venir des candidatures Manager.
-     * Le Manager voit les entretiens des candidatures qui lui sont rattachees.
+     * US-ENT-05: Calendrier Manager — entretiens a venir du manager connecte.
+     * Le Manager voit les entretiens qu'il doit mener (planifie_par = managerId)
+     * ou les entretiens des candidatures qui lui sont assignees.
      *
-     * @return liste des entretiens a venir pour le Manager
+     * @param managerId ID du manager connecte
+     * @return liste des entretiens a venir pour ce Manager
      */
     @Transactional(readOnly = true)
-    public List<EntretienResponse> getCalendrierManager() {
+    public List<EntretienResponse> getCalendrierManager(UUID managerId) {
         List<StatutEntretien> statuts = List.of(StatutEntretien.planifie, StatutEntretien.confirme);
-        List<StatutCandidature> statutsCandidature = List.of(
-                StatutCandidature.acceptee_manager,
-                StatutCandidature.entretien_planifie
-        );
         List<Entretien> entretiens = entretienRepository
-                .findUpcomingEntretiensByStatutCandidature(LocalDateTime.now(), statuts, statutsCandidature);
+                .findUpcomingEntretiensByManagerId(managerId, LocalDateTime.now(), statuts);
         return entretienMapper.toResponseList(entretiens);
     }
 

@@ -161,15 +161,16 @@ public class EntretienController {
     }
 
     /**
-     * US-ENT-05: Calendrier Manager — entretiens a venir des candidatures Manager.
+     * US-ENT-05: Calendrier Manager — entretiens a venir du Manager connecte.
      * GET /api/entretiens/calendrier/manager
      * Accessible par: Manager (permission VIEW_CALENDAR)
      */
     @GetMapping("/calendrier/manager")
     @PreAuthorize("hasAuthority('VIEW_CALENDAR')")
-    public ResponseEntity<ApiResponse<List<EntretienResponse>>> getCalendrierManager() {
+    public ResponseEntity<ApiResponse<List<EntretienResponse>>> getCalendrierManager(
+            @AuthenticationPrincipal Utilisateur currentUser) {
 
-        List<EntretienResponse> entretiens = entretienService.getCalendrierManager();
+        List<EntretienResponse> entretiens = entretienService.getCalendrierManager(currentUser.getId());
 
         return ResponseEntity.ok(
                 ApiResponse.success(entretiens, "Calendrier Manager — entretiens a venir: " + entretiens.size()));

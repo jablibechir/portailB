@@ -20,7 +20,9 @@ public record CreateEntretienRequest(
 
         String type, // presentiel, visio, telephonique
 
-        String notes
+        String notes,
+
+        UUID interviewerId // optional: ID du manager/interviewer
 ) {
 }
 

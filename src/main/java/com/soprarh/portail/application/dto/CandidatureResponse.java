@@ -23,7 +23,10 @@ public record CandidatureResponse(
         String lettreMotivation,
         LocalDateTime dateCreation,
         // Informations CV (US-CAND-02)
-        CvInfo cv
+        CvInfo cv,
+        // Manager assigne
+        UUID managerId,
+        String managerNom
 ) {
     /**
      * DTO imbrique pour les informations du CV.
