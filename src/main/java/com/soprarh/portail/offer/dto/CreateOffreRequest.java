@@ -27,7 +27,6 @@ public record CreateOffreRequest(
 
         /**
          * Statut initial: "brouillon" ou "publiee".
-         * Si null, defaut = brouillon.
          */
         String statut,
 

@@ -390,6 +390,126 @@ Permissions par rôle:
   VIEW_NOTIFICATIONS ..... Consultation des notifications
 
 ================================================================================
+                      SCORING — ENTITÉS (pas encore d'endpoints)
+   Entities: src/main/java/com/soprarh/portail/scoring/entity/
+================================================================================
+
+Tables mappées:
+
+  criteres_scoring
+    - id (UUID PK), nom (VARCHAR 100), poids (DOUBLE, >0 et <=100)
+    - cree_par (UUID FK → utilisateurs), offre_id (UUID FK → offres_emploi)
+    - type (ENUM: COMPETENCES, EXPERIENCE, FORMATION, LANGUES, CERTIFICATIONS, SOFT_SKILLS)
+    - date_creation (TIMESTAMP)
+
+  resultats_scoring
+    - id (UUID PK), candidature_id (UUID FK → candidatures)
+    - score_total (DOUBLE NOT NULL), date_calcul (TIMESTAMP)
+
+  resultat_criteres (table de jonction, PK composite)
+    - resultat_id (UUID FK → resultats_scoring)
+    - critere_id (UUID FK → criteres_scoring)
+    - score_obtenu (DOUBLE NOT NULL)
+
+Fichiers créés:
+  - TypeCritere.java ............. Enum (COMPETENCES, EXPERIENCE, FORMATION, LANGUES, CERTIFICATIONS, SOFT_SKILLS)
+  - CritereScoring.java ......... Entité JPA, FK vers OffreEmploi et Utilisateur
+  - ResultatScoring.java ........ Entité JPA, FK vers Candidature, @OneToMany vers ResultatCritere
+  - ResultatCritereId.java ...... Clé composite (Serializable) pour ResultatCritere
+  - ResultatCritere.java ........ Entité JPA avec @IdClass, FK vers ResultatScoring et CritereScoring
+
+Fichiers créés (Sprint Scoring):
+  - CritereScoringRepository.java ... findByOffreId, deleteAllByOffreId
+  - ResultatScoringRepository.java .. findByCandidatureId, findTopByOrderByDateCalculDesc
+  - ScoringService.java ............. CRUD critères + appel microservice Python IA
+  - ScoringController.java .......... Endpoints REST scoring
+  - AiServiceConfig.java ............ Config WebClient vers microservice Python (port 8000)
+
+================================================================================
+9. SCORING  —  /api/scoring
+   Controller: src/main/java/com/soprarh/portail/scoring/controller/ScoringController.java
+================================================================================
+
+GET    /api/scoring/offre/{offreId}/criteres
+       Auth: MANAGE_SCORING_CRITERIA
+       → Liste les critères de scoring d'une offre.
+
+POST   /api/scoring/offre/{offreId}/criteres
+       Body: CritereRequest (nom, poids, type)
+       Auth: MANAGE_SCORING_CRITERIA
+       → Crée un critère de scoring pour une offre.
+
+PUT    /api/scoring/criteres/{critereId}
+       Body: CritereRequest (nom, poids, type)
+       Auth: MANAGE_SCORING_CRITERIA
+       → Modifie un critère existant.
+
+DELETE /api/scoring/criteres/{critereId}
+       Auth: MANAGE_SCORING_CRITERIA
+       → Supprime un critère.
+
+POST   /api/scoring/candidature/{candidatureId}
+       Auth: EVALUATE_CANDIDATES
+       → Lance le scoring IA d'une candidature (appelle le microservice Python).
+
+GET    /api/scoring/candidature/{candidatureId}
+       Auth: EVALUATE_CANDIDATES
+       → Consulte le résultat de scoring d'une candidature.
+
+================================================================================
+10. MICROSERVICE PYTHON IA  —  http://localhost:8000
+================================================================================
+
+GET    /health
+       → Vérifier que le service IA est en marche.
+
+POST   /api/parse-cv
+       Body: multipart file (PDF)
+       → Extrait le texte brut d'un fichier PDF.
+
+POST   /api/extract-cv
+       Body: multipart file (PDF)
+       → Extrait le texte du PDF puis retourne les données structurées:
+         competences, competencesDetail, experiences, experiencesDetail,
+         formations, formationsDetail, langues, certifications, softSkills, resume
+
+POST   /api/extract-text
+       Body: { "text": "..." }
+       → Prend du texte brut déjà parsé et retourne les données structurées.
+
+POST   /api/score
+       Body: { cv_text, offre_titre, offre_description, offre_competences,
+               offre_experience, offre_formation }
+       → Score global : similarité cosinus CV vs Offre (0-100).
+
+POST   /api/score-criteres
+       Body: { cv_text, criteres: [{ critere_id, critere_nom, poids, texte_reference }] }
+       → Score détaillé par critère pondéré.
+
+================================================================================
+11. DASHBOARD  —  /api/dashboard
+    Controller: src/main/java/com/soprarh/portail/dashboard/controller/DashboardController.java
+================================================================================
+
+GET    /api/dashboard
+       Auth: VIEW_STATS ou VIEW_STATISTICS
+       → Retourne les KPIs et statistiques pour le RH:
+         - totalCandidatures, totalOffres, offresPubliees, totalUtilisateurs
+         - candidaturesParStatut (map statut -> count)
+         - offresParStatut (map statut -> count)
+         - tauxSelection (% acceptees/total)
+         - scoreMoyen
+         - candidaturesRecentes (5 dernieres)
+         - offresRecentes (5 dernieres)
+
+Fichiers créés:
+  - DashboardResponse.java ........ DTO principal avec tous les KPIs
+  - CandidatureResumeDto.java ..... Résumé candidature pour le dashboard
+  - OffreResumeDto.java ........... Résumé offre pour le dashboard
+  - DashboardService.java ......... Calcul des statistiques
+  - DashboardController.java ...... Endpoint REST
+
+================================================================================
                       FORMAT DE RÉPONSE STANDARD
 ================================================================================
 
@@ -423,5 +543,364 @@ CORS:
   - Headers exposés: Authorization
 
 ================================================================================
-               TOTAL: 49 ENDPOINTS (7 publics, 42 protégés)
+               TOTAL: 57 ENDPOINTS (8 publics, 49 protégés)
 ================================================================================
+
+
+================================================================================
+               AUDIT COMPLET DU PROJET — 24/04/2026
+================================================================================
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  BACKEND SPRING BOOT (port 8080)         Compilation: ✅ OK                ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║  Module         Entity  Repo  DTO  Service  Controller  Mapper  Status     ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║  Auth             -       -    5      3        1          -      ✅ DONE    ║
+║  User             6       3    6      2        2          1      ✅ DONE    ║
+║  Profil           2       1    1      1        1          1      ✅ DONE    ║
+║  Offer            2       1    5      1        1          1      ✅ DONE    ║
+║  Application      2       1    4      1        1          1      ✅ DONE    ║
+║  CV               8       2    -      -        -          -      ✅ DONE    ║
+║  Scoring          5       2    4      1        1          -      ✅ DONE    ║
+║  Evaluation       5       2    4      2        2          2      ✅ DONE    ║
+║  Notification     2       1    1      1        1          1      ✅ DONE    ║
+║  Dashboard        -       -    3      1        1          -      ✅ DONE    ║
+║  Shared           2       1    1      1        1          1      ✅ DONE    ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  MICROSERVICE PYTHON IA (port 8000)      Status: ✅ OK                     ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║  Fichier              Rôle                                                 ║
+║  api.py               FastAPI (6 endpoints)                                ║
+║  cv_parser.py         Extraction texte PDF (PyPDF2)                        ║
+║  cv_extractor.py      Extraction structurée (regex + mots-clés)            ║
+║  scoring_engine.py    Similarité cosinus (modèle fine-tuné)                ║
+║  train_model.py       Script d'entraînement                                ║
+║  training_notebook    Notebook Jupyter complet                             ║
+║  model/               Modèle fine-tuné cv-matching-model (90 MB)           ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  CE QUI EST FAIT ✅                                                        ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║  1.  Auth (register, login, JWT, refresh, verify email, me)                ║
+║  2.  User (CRUD, rôles, permissions RBAC)                                  ║
+║  3.  Profil (consulter, modifier, upload photo)                            ║
+║  4.  Offres (CRUD, statuts, filtres publics, type emploi)                  ║
+║  5.  Candidatures (déposer, suivre, filtrer, workflow RH/Manager)          ║
+║  6.  CV Upload (stockage fichier, lien avec candidature)                   ║
+║  7.  Évaluations (RH + Manager, décisions, commentaires)                   ║
+║  8.  Entretiens (planifier, confirmer/annuler, calendrier)                 ║
+║  9.  Notifications (auto: compte activé, candidature soumise/rejetée/      ║
+║      transmise/acceptée, entretien planifié — CRUD: lire/marquer)          ║
+║  10. Scoring (critères CRUD, appel IA, score global + par critère)         ║
+║  11. Dashboard (KPIs: totaux, par statut, taux sélection, score moyen)    ║
+║  12. Modèle IA fine-tuné (30000 paires, 3 epochs, données FR ajoutées)    ║
+║  13. Parsing CV PDF → texte brut                                           ║
+║  14. Extraction structurée CV (compétences, expériences, formations...)    ║
+║  15. Security (JWT access+refresh, BCrypt, RBAC, CORS, @PreAuthorize)     ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  CE QUI MANQUE ❌                                                          ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║                                                                            ║
+║  1. INTÉGRATION AUTO CV PARSING ✅ FAIT (24/04/2026)                       ║
+║     - CvParsingService.java créé dans cv/service/                          ║
+║     - Appelle /api/extract-cv du microservice Python                       ║
+║     - Remplit donnees_cv + competences + experiences + formations           ║
+║       + langues + certifications + soft_skills                             ║
+║     - Appelé automatiquement dans CandidatureService.deposerCandidature()  ║
+║                                                                            ║
+║  2. SCORING AUTOMATIQUE ✅ FAIT (24/04/2026)                               ║
+║     - Appelé automatiquement après parsing dans deposerCandidature()       ║
+║     - En cas d'échec du scoring, la candidature est quand même créée       ║
+║                                                                            ║
+║  3. VÉRIFIER CONFIG PYTHON URL ✅ FAIT                                     ║
+║     - python.service.base-url=http://localhost:8000 dans properties         ║
+║                                                                            ║
+║  4. Table statistiques — Non implémenté                                    ║
+║     - La table existe mais n'est pas utilisée                              ║
+║     - Le dashboard calcule les stats à la volée                            ║
+║                                                                            ║
+║  5. Tests unitaires — Non implémenté                                       ║
+║     - Aucun test pour services/controllers                                 ║
+║                                                                            ║
+║  6. Export rapports — Non implémenté                                       ║
+║     - Permission EXPORT_REPORTS existe mais pas d'endpoint                 ║
+║                                                                            ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+
+================================================================================
+     AUDIT FRONTEND ↔ BACKEND — 27/04/2026
+     Comparaison des appels frontend vs endpoints backend existants
+================================================================================
+
+Le frontend (portailF/) utilise des fichiers services dans src/services/:
+  authService.js, candidatureService.js, cvService.js, dashboardService.js,
+  entretienService.js, notificationService.js, offreService.js,
+  scoringService.js, statsService.js, userService.js
+
+================================================================================
+A. ENDPOINTS BACKEND ✅ APPELÉS PAR LE FRONTEND (match parfait)
+   Ces endpoints existent en backend ET sont appelés par le frontend.
+================================================================================
+
+  AUTH (authService.js):
+  ✅ POST   /api/auth/login              → Login
+  ✅ POST   /api/auth/register           → Register
+  ✅ GET    /api/auth/me                 → Profil connecté
+  ✅ POST   /api/auth/refresh            → Refresh token
+
+  OFFRES (offreService.js):
+  ✅ GET    /api/offres                  → Offres publiées (filtres)
+  ✅ GET    /api/offres/{id}             → Détail offre
+  ✅ GET    /api/offres/admin            → Toutes les offres (RH)
+  ✅ GET    /api/offres/admin/{id}       → Détail offre admin
+  ✅ POST   /api/offres                  → Créer offre
+  ✅ PUT    /api/offres/{id}             → Modifier offre
+  ✅ DELETE /api/offres/{id}             → Supprimer offre
+  ✅ PATCH  /api/offres/{id}/statut      → Changer statut offre
+
+  CANDIDATURES (candidatureService.js):
+  ✅ POST   /api/candidatures            → Déposer candidature
+  ✅ GET    /api/candidatures/mes        → Mes candidatures (candidat)
+  ✅ GET    /api/candidatures            → Lister toutes (RH)
+  ✅ GET    /api/candidatures/filtrer    → Filtrer (RH)
+  ✅ GET    /api/candidatures/{id}       → Détail candidature
+  ✅ PATCH  /api/candidatures/{id}/statut → Changer statut
+  ✅ POST   /api/candidatures/{id}/transmettre → Transmettre au manager
+  ✅ GET    /api/candidatures/manager    → Candidatures du manager
+  ✅ POST   /api/candidatures/{id}/valider-manager → Valider (manager)
+  ✅ POST   /api/candidatures/{id}/rejeter-manager → Rejeter (manager)
+
+  NOTIFICATIONS (notificationService.js):
+  ✅ GET    /api/notifications           → Toutes les notifs
+  ✅ GET    /api/notifications/non-lues  → Non lues
+  ✅ GET    /api/notifications/count     → Compteur
+  ✅ PUT    /api/notifications/{id}/lire → Marquer lue
+  ✅ PUT    /api/notifications/lire-toutes → Marquer toutes lues
+
+  ENTRETIENS (entretienService.js):
+  ✅ POST   /api/entretiens              → Planifier entretien
+  ✅ PATCH  /api/entretiens/{id}/statut  → Confirmer/annuler
+  ✅ GET    /api/entretiens/calendrier/rh → Calendrier RH
+  ✅ GET    /api/entretiens/calendrier/manager → Calendrier manager
+  ✅ GET    /api/entretiens/mes-a-venir  → Entretiens candidat
+
+  USERS (userService.js):
+  ✅ PUT    /api/users/{id}/role         → Changer rôle
+
+  SCORING (scoringService.js):
+  ✅ GET    /api/scoring/candidature/{id} → Résultat scoring
+  ✅ DELETE /api/scoring/criteres/{id}   → Supprimer critère
+
+  TOTAL MATCHÉS: 37 endpoints
+
+================================================================================
+B. ENDPOINTS BACKEND ❌ JAMAIS APPELÉS PAR LE FRONTEND
+   Ces endpoints existent en backend mais AUCUN appel frontend ne les utilise.
+================================================================================
+
+  AUTH:
+  ❌ GET    /api/auth/verify?code={code}
+     Raison: Normal — appelé via le lien email, pas depuis le JS frontend.
+     Action: Aucune. C'est le navigateur qui ouvre le lien directement.
+
+  USERS:
+  ❌ GET    /api/users
+     Raison: Le backend a cet endpoint, mais le frontend n'appelle pas
+             cette URL exacte. Le frontend utilise des endpoints différents
+             dans AdminUtilisateurs.jsx.
+     Action: Vérifier si AdminUtilisateurs.jsx charge la liste autrement.
+
+  ❌ POST   /api/users
+     Raison: Création d'utilisateur par le RH — le frontend ne l'utilise pas.
+     Action: Ajouter un bouton "Créer utilisateur" dans AdminUtilisateurs.jsx
+             ou supprimer si non nécessaire.
+
+  PROFIL:
+  ❌ GET    /api/profil
+  ❌ PUT    /api/profil
+  ❌ POST   /api/profil/photo
+  ❌ GET    /api/profil/photo/{filename}
+     Raison: Le module Profil complet (téléphone, adresse, photo) n'est pas
+             encore intégré dans le frontend. AdminProfil.jsx existe mais
+             n'appelle probablement pas ces endpoints.
+     Action: Connecter AdminProfil.jsx aux endpoints /api/profil.
+
+  CANDIDATURES:
+  ❌ POST   /api/candidatures/{id}/evaluer
+     Raison: "Passer en évaluation RH" — le frontend utilise directement
+             PATCH /statut ou les boutons transmettre/rejeter.
+     Action: Aucune urgente. Peut être utile pour un workflow plus fin.
+
+  ❌ POST   /api/candidatures/{id}/rejeter-rh
+     Raison: Le frontend utilise PATCH /statut pour rejeter côté RH
+             au lieu de cet endpoint dédié.
+     Action: Migrer vers cet endpoint dédié pour plus de clarté.
+
+  ❌ GET    /api/candidatures/cv/{id}
+     Raison: Téléchargement de CV — le frontend n'a pas encore de bouton
+             "Télécharger CV" dans le détail candidature.
+     Action: Ajouter un bouton de téléchargement dans CandidatureDetail.jsx.
+
+  EVALUATIONS:
+  ❌ POST   /api/evaluations/rh
+  ❌ POST   /api/evaluations/manager
+  ❌ GET    /api/evaluations/candidature/{id}
+  ❌ GET    /api/evaluations/mes
+  ❌ GET    /api/evaluations/{id}
+     Raison: TOUT le module Évaluations est absent du frontend.
+             Aucun fichier service evaluationService.js n'existe.
+             Le frontend utilise uniquement les boutons valider/rejeter
+             sur les candidatures, sans évaluation détaillée.
+     Action: Créer evaluationService.js et intégrer dans
+             CandidatureDetail.jsx (commentaire + décision).
+
+  ENTRETIENS:
+  ❌ GET    /api/entretiens/candidature/{id}
+     Raison: Voir les entretiens liés à une candidature spécifique.
+             Le frontend affiche le calendrier global, pas par candidature.
+     Action: Ajouter dans CandidatureDetail.jsx une section "Entretiens".
+
+  ❌ GET    /api/entretiens/mes-planifies
+     Raison: "Mes entretiens planifiés par moi (RH)" — le frontend utilise
+             /calendrier/rh à la place.
+     Action: Aucune urgente. Redondant avec calendrier/rh.
+
+  ❌ GET    /api/entretiens/{id}
+     Raison: Détail d'un entretien spécifique — pas de page détail entretien
+             dans le frontend.
+     Action: Ajouter un modal/page détail entretien si nécessaire.
+
+  SCORING:
+  ❌ GET    /api/scoring/offre/{offreId}/criteres
+  ❌ POST   /api/scoring/offre/{offreId}/criteres
+  ❌ PUT    /api/scoring/criteres/{critereId}
+  ❌ POST   /api/scoring/candidature/{candidatureId}
+     Raison: Le frontend utilise des URLs différentes pour le scoring:
+             - GET  /api/scoring/criteres (sans offreId)
+             - POST /api/scoring/criteres (sans offreId)
+             - PUT  /api/scoring/criteres/{id}
+             - POST /api/scoring/calculer/{id} (au lieu de /candidature/)
+     Action: ⚠️ MISMATCH — Les URLs frontend ne correspondent pas aux URLs
+             backend. Il faut aligner l'un ou l'autre.
+
+  DASHBOARD:
+  ❌ GET    /api/dashboard
+     Raison: Le frontend appelle /api/dashboard/stats au lieu de /api/dashboard.
+     Action: ⚠️ MISMATCH — Corriger le backend ou le frontend.
+
+  TOTAL NON APPELÉS: 20 endpoints
+
+================================================================================
+C. APPELS FRONTEND ❌ QUI N'ONT PAS D'ENDPOINT BACKEND
+   Le frontend appelle ces URLs mais elles N'EXISTENT PAS dans le backend.
+================================================================================
+
+  SCORING:
+  ❌ GET    /api/scoring/criteres           (frontend: scoringService.js)
+     Backend a: GET /api/scoring/offre/{offreId}/criteres
+     → Il manque un endpoint backend pour lister TOUS les critères
+       (sans filtre par offre).
+
+  ❌ POST   /api/scoring/criteres           (frontend: scoringService.js)
+     Backend a: POST /api/scoring/offre/{offreId}/criteres
+     → Même problème: le frontend crée un critère sans spécifier l'offre.
+
+  ❌ PUT    /api/scoring/criteres/{id}      (frontend: scoringService.js)
+     Backend a: PUT /api/scoring/criteres/{critereId}
+     → ✅ Celui-ci devrait matcher (même URL).
+
+  ❌ POST   /api/scoring/calculer/{id}      (frontend: scoringService.js)
+     Backend a: POST /api/scoring/candidature/{candidatureId}
+     → URL différente. Le frontend dit "calculer", le backend dit "candidature".
+
+  ❌ GET    /api/scoring/classement/{offreId} (frontend: scoringService.js)
+     Backend: N'EXISTE PAS
+     → Endpoint manquant: classement des candidatures par score pour une offre.
+
+  STATS:
+  ❌ GET    /api/stats/dashboard            (frontend: statsService.js)
+     Backend a: GET /api/dashboard
+     → URL différente. Le frontend utilise /api/stats/dashboard.
+
+  ❌ GET    /api/stats/candidatures-par-mois (frontend: statsService.js)
+     Backend: N'EXISTE PAS
+     → Endpoint manquant: statistiques mensuelles des candidatures.
+
+  ❌ GET    /api/stats/top-offres           (frontend: statsService.js)
+     Backend: N'EXISTE PAS
+     → Endpoint manquant: top des offres (par nombre de candidatures).
+
+  ❌ GET    /api/stats/export               (frontend: statsService.js)
+     Backend: N'EXISTE PAS
+     → Endpoint manquant: export des statistiques (CSV/PDF).
+
+  DASHBOARD:
+  ❌ GET    /api/dashboard/stats            (frontend: dashboardService.js)
+     Backend a: GET /api/dashboard
+     → URL différente. Le frontend ajoute "/stats".
+
+  CV:
+  ❌ GET    /api/cv/{candidatureId}/donnees  (frontend: cvService.js)
+     Backend: N'EXISTE PAS
+     → Endpoint manquant: récupérer les données parsées du CV
+       (compétences, expériences, formations...) pour affichage.
+
+  USERS:
+  ❌ PUT    /api/users/{userId}             (frontend: userService.js)
+     Backend: N'EXISTE PAS
+     → Endpoint manquant: modifier les infos d'un utilisateur (pas son rôle).
+
+  ❌ GET    /api/users/managers             (frontend: userService.js)
+     Backend: N'EXISTE PAS
+     → Endpoint manquant: lister les managers (pour le dropdown de
+       transmission de candidature).
+
+  TOTAL MANQUANTS: 13 endpoints backend à créer
+
+================================================================================
+D. RÉSUMÉ ET PRIORITÉS
+================================================================================
+
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  CATÉGORIE                              NOMBRE    PRIORITÉ             │
+  ├─────────────────────────────────────────────────────────────────────────┤
+  │  ✅ Endpoints qui matchent              37        —                    │
+  │  ❌ Backend existe, frontend n'appelle   20        Basse (normal)       │
+  │  ❌ Frontend appelle, backend manque     13        🔴 HAUTE             │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  PRIORITÉ 🔴 HAUTE — Endpoints à créer dans le backend:
+  ────────────────────────────────────────────────────────
+  1.  GET    /api/users/managers              → Liste des managers
+  2.  PUT    /api/users/{id}                  → Modifier un utilisateur
+  3.  GET    /api/cv/{candidatureId}/donnees  → Données CV parsées
+  4.  GET    /api/dashboard/stats             → Dashboard stats (ou alias)
+  5.  GET    /api/stats/candidatures-par-mois → Stats mensuelles
+  6.  GET    /api/stats/top-offres            → Top offres
+  7.  GET    /api/stats/export                → Export CSV
+  8.  GET    /api/scoring/criteres            → Tous les critères
+  9.  POST   /api/scoring/criteres            → Créer critère (sans offreId)
+  10. POST   /api/scoring/calculer/{id}       → Alias pour scoring candidature
+  11. GET    /api/scoring/classement/{offreId} → Classement par offre
+
+  PRIORITÉ 🟡 MOYENNE — URLs à aligner:
+  ────────────────────────────────────────
+  1.  Frontend: /api/dashboard/stats → Backend: /api/dashboard
+  2.  Frontend: /api/stats/dashboard → Backend: /api/dashboard
+  3.  Frontend: /api/scoring/calculer/{id} → Backend: /api/scoring/candidature/{id}
+
+  PRIORITÉ 🟢 BASSE — Endpoints backend non utilisés (garder):
+  ─────────────────────────────────────────────────────────────
+  - /api/auth/verify (appelé par lien email, pas JS)
+  - /api/profil/* (à connecter quand la page profil sera faite)
+  - /api/evaluations/* (module complet à intégrer côté frontend)
+  - /api/entretiens/{id} et /mes-planifies (redondants)
+
+

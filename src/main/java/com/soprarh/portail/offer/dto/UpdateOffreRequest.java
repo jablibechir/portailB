@@ -21,7 +21,6 @@ public record UpdateOffreRequest(
         @Size(max = 100, message = "L'experience ne peut pas depasser 100 caracteres")
         String experienceRequise,
 
-        @Size(max = 200, message = "La formation ne peut pas depasser 200 caracteres")
         String formationRequise,
 
         /**

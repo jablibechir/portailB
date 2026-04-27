@@ -7,9 +7,11 @@ import com.soprarh.portail.application.mapper.CandidatureMapper;
 import com.soprarh.portail.application.repository.CandidatureRepository;
 import com.soprarh.portail.cv.entity.Cv;
 import com.soprarh.portail.cv.repository.CvRepository;
+import com.soprarh.portail.cv.service.CvParsingService;
 import com.soprarh.portail.offer.entity.OffreEmploi;
 import com.soprarh.portail.offer.entity.StatutOffre;
 import com.soprarh.portail.offer.repository.OffreEmploiRepository;
+import com.soprarh.portail.scoring.service.ScoringService;
 import com.soprarh.portail.shared.BusinessException;
 import com.soprarh.portail.shared.service.NotificationService;
 import com.soprarh.portail.user.entity.Utilisateur;
@@ -46,6 +48,8 @@ public class CandidatureService {
     private final CvRepository cvRepository;
     private final CandidatureMapper candidatureMapper;
     private final NotificationService notificationService;
+    private final CvParsingService cvParsingService;
+    private final ScoringService scoringService;
 
     @Value("${app.upload.cv-dir:uploads/cvs}")
     private String cvDir;
@@ -107,6 +111,22 @@ public class CandidatureService {
         // 6. Si un CV est fourni, le sauvegarder et le lier a la candidature
         if (cvFile != null && !cvFile.isEmpty()) {
             saveCvFile(saved, cvFile);
+
+            // 7. Parsing automatique du CV via le microservice Python
+            if (saved.getCv() != null) {
+                Path cvPath = Paths.get(saved.getCv().getFichier());
+                cvParsingService.parseAndSaveCvData(saved.getCv(), cvPath);
+            }
+
+            // 8. Scoring automatique apres parsing
+            try {
+                scoringService.scoreCandidature(saved.getId());
+                // Recharger la candidature avec le score mis a jour
+                saved = candidatureRepository.findById(saved.getId()).orElse(saved);
+                log.info("Scoring automatique effectue pour candidature: {}", saved.getId());
+            } catch (Exception e) {
+                log.warn("Scoring automatique echoue pour candidature {}: {}", saved.getId(), e.getMessage());
+            }
         }
 
         // US-NOTIF-02: Notification candidat -> confirmation
@@ -385,12 +405,19 @@ public class CandidatureService {
     }
 
     /**
-     * Recupere le chemin physique d'un CV.
+     * Recupere le chemin physique d'un CV a partir de l'ID de la CANDIDATURE.
+     * (Le frontend envoie systematiquement l'ID de la candidature, pas l'ID du CV.)
      */
-    public Path getCvPath(UUID cvId) {
-        Cv cv = cvRepository.findById(cvId)
+    public Path getCvPath(UUID candidatureId) {
+        // 1) On essaie d'abord de trouver le CV via la candidature
+        Cv cv = cvRepository.findByCandidatureId(candidatureId)
+                // 2) Fallback : si l'UUID correspond directement a un CV (legacy)
+                .or(() -> cvRepository.findById(candidatureId))
                 .orElseThrow(() -> new BusinessException("CV non trouve.", HttpStatus.NOT_FOUND));
-        
+
+        if (cv.getFichier() == null || cv.getFichier().isBlank()) {
+            throw new BusinessException("Fichier CV non trouve.", HttpStatus.NOT_FOUND);
+        }
         Path filePath = Paths.get(cv.getFichier());
         if (!Files.exists(filePath)) {
             throw new BusinessException("Fichier CV non trouve.", HttpStatus.NOT_FOUND);

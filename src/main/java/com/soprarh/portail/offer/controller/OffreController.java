@@ -121,19 +121,13 @@ public class OffreController {
     // ==================== Endpoints Publics (Candidat + Visiteur) ====================
 
     /**
-     * US-OFF-05: Filtrer les offres publiees.
+     * US-OFF-05: Rechercher et filtrer les offres publiees.
      * GET /api/offres?keyword=...&experience=...&formation=...&days=7&typeEmploi=Stage
-     * Accessible par: TOUS (public, sans authentification).
+     * Accessible par: tous les utilisateurs authentifies (permission VIEW_OFFERS).
      * Retourne uniquement les offres publiees.
-     *
-     * @param keyword    mot-cle (titre, description, competences)
-     * @param experience filtre experience requise
-     * @param formation  filtre formation requise
-     * @param days       nombre de jours depuis la publication (7, 30, null = tous)
-     * @param typeEmploi filtre type d'emploi (ex: Stage, Alternance, null = tous)
      */
     @GetMapping
-    public ResponseEntity<ApiResponse<List<OffreResponse>>> searchOffres(
+    public ResponseEntity<ApiResponse<List<OffreResponse>>> searchOffresPubliees(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String experience,
             @RequestParam(required = false) String formation,
@@ -149,7 +143,7 @@ public class OffreController {
     /**
      * Recuperer une offre publiee par ID.
      * GET /api/offres/{id}
-     * Accessible par: TOUS (public, sans authentification).
+     * Accessible par: tous les utilisateurs authentifies (permission VIEW_OFFERS)
      */
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<OffreResponse>> getOffrePubliee(@PathVariable UUID id) {
