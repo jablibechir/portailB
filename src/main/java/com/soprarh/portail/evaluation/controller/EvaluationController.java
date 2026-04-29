@@ -109,6 +109,19 @@ public class EvaluationController {
     // ==================== Endpoints Manager ====================
 
     /**
+     * Recuperer toutes les evaluations (RH uniquement).
+     * GET /api/evaluations/toutes
+     * Accessible par: RH (permission EVALUATE_CANDIDATES)
+     */
+    @GetMapping("/toutes")
+    @PreAuthorize("hasAuthority('EVALUATE_CANDIDATES')")
+    public ResponseEntity<ApiResponse<List<EvaluationResponse>>> getAllEvaluations() {
+        List<EvaluationResponse> evaluations = evaluationService.getAllEvaluations();
+        return ResponseEntity.ok(
+                ApiResponse.success(evaluations, "Toutes les evaluations: " + evaluations.size()));
+    }
+
+    /**
      * US-EVAL-02: Creer une evaluation (Manager).
      * POST /api/evaluations/manager
      * Accessible par: Manager (permission VALIDATE_CANDIDATES)

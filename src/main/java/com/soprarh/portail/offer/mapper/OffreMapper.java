@@ -32,7 +32,11 @@ public class OffreMapper {
                 offre.getCreePar() != null ? offre.getCreePar().getId() : null,
                 offre.getDateCreation(),
                 offre.getDateExpiration(),
-                offre.getTypeEmploi()
+                offre.getTypeEmploi(),
+                offre.getRecommandeePar() != null ? offre.getRecommandeePar().getId() : null,
+                offre.getRecommandeePar() != null ? (offre.getRecommandeePar().getPrenom() + " " + offre.getRecommandeePar().getNom()) : null,
+                offre.getCommentaireManager(),
+                offre.getDateRecommandation()
         );
     }
 }

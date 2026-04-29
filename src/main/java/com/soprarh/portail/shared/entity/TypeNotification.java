@@ -19,10 +19,13 @@ public enum TypeNotification {
     candidature_retournee_manager,
     offre_expire_bientot,
     nouveau_compte_cree,
+    recommandation_recue,
 
     // ==================== Notifications Manager ====================
     candidature_recue_pour_evaluation,
     nouvelle_candidature_offre_assignee,
     entretien_planifie_manager,
-    mise_a_jour_candidature_manager
+    mise_a_jour_candidature_manager,
+    recommandation_publiee,
+    recommandation_refusee
 }

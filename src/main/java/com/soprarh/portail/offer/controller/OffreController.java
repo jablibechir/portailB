@@ -151,5 +151,88 @@ public class OffreController {
 
         return ResponseEntity.ok(ApiResponse.success(offre));
     }
+
+    // ==================== Endpoints Manager — Recommandations ====================
+
+    /**
+     * Manager: Recommander un nouveau poste.
+     * POST /api/offres/recommandations
+     * Accessible par: Manager (permission RECOMMEND_POSITIONS)
+     */
+    @PostMapping("/recommandations")
+    @PreAuthorize("hasAuthority('RECOMMEND_POSITIONS')")
+    public ResponseEntity<ApiResponse<OffreResponse>> recommanderPoste(
+            @Valid @RequestBody RecommandationRequest request,
+            @AuthenticationPrincipal Utilisateur currentUser) {
+
+        OffreResponse offre = offreService.recommanderPoste(request, currentUser.getId());
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.success(offre, "Recommandation creee avec succes"));
+    }
+
+    /**
+     * Manager: Voir ses recommandations.
+     * GET /api/offres/recommandations/mes
+     * Accessible par: Manager (permission RECOMMEND_POSITIONS)
+     */
+    @GetMapping("/recommandations/mes")
+    @PreAuthorize("hasAuthority('RECOMMEND_POSITIONS')")
+    public ResponseEntity<ApiResponse<List<OffreResponse>>> getMesRecommandations(
+            @AuthenticationPrincipal Utilisateur currentUser) {
+
+        List<OffreResponse> offres = offreService.getMesRecommandations(currentUser.getId());
+
+        return ResponseEntity.ok(ApiResponse.success(offres, "Mes recommandations: " + offres.size()));
+    }
+
+    /**
+     * RH: Voir les recommandations en attente.
+     * GET /api/offres/recommandations/en-attente
+     * Accessible par: RH (permission MANAGE_OFFERS)
+     */
+    @GetMapping("/recommandations/en-attente")
+    @PreAuthorize("hasAuthority('MANAGE_OFFERS')")
+    public ResponseEntity<ApiResponse<List<OffreResponse>>> getRecommandationsEnAttente() {
+
+        List<OffreResponse> offres = offreService.getRecommandationsEnAttente();
+
+        return ResponseEntity.ok(ApiResponse.success(offres, "Recommandations en attente: " + offres.size()));
+    }
+
+    /**
+     * RH: Traiter une recommandation (publier / brouillon / refuser).
+     * POST /api/offres/recommandations/{id}/traiter
+     * Accessible par: RH (permission MANAGE_OFFERS)
+     * Body: { "action": "publier|brouillon|refuser", "motifRefus": "...", "updates": {...} }
+     */
+    @PostMapping("/recommandations/{id}/traiter")
+    @PreAuthorize("hasAuthority('MANAGE_OFFERS')")
+    public ResponseEntity<ApiResponse<OffreResponse>> traiterRecommandation(
+            @PathVariable UUID id,
+            @RequestBody java.util.Map<String, Object> body) {
+
+        String action = (String) body.get("action");
+        String motifRefus = (String) body.get("motifRefus");
+
+        // Parse optional updates
+        UpdateOffreRequest updates = null;
+        if (body.containsKey("titre") || body.containsKey("description")) {
+            updates = new UpdateOffreRequest(
+                    (String) body.get("titre"),
+                    (String) body.get("description"),
+                    (String) body.get("competencesRequises"),
+                    (String) body.get("experienceRequise"),
+                    (String) body.get("formationRequise"),
+                    null, // dateExpiration
+                    (String) body.get("typeEmploi")
+            );
+        }
+
+        OffreResponse offre = offreService.traiterRecommandation(id, action, updates, motifRefus);
+
+        return ResponseEntity.ok(ApiResponse.success(offre, "Recommandation traitee avec succes"));
+    }
 }
 

@@ -171,6 +171,19 @@ public class EvaluationService {
     }
 
     /**
+     * Recuperer toutes les evaluations (pour RH).
+     *
+     * @return liste de toutes les evaluations
+     */
+    @Transactional(readOnly = true)
+    public List<EvaluationResponse> getAllEvaluations() {
+        List<Evaluation> evaluations = evaluationRepository
+                .findAllByOrderByDateEvaluationDesc();
+
+        return evaluationMapper.toResponseList(evaluations);
+    }
+
+    /**
      * Recuperer une evaluation par son ID.
      *
      * @param id ID de l'evaluation

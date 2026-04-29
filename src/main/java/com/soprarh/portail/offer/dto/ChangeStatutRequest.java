@@ -10,8 +10,8 @@ import jakarta.validation.constraints.Pattern;
 public record ChangeStatutRequest(
 
         @NotBlank(message = "Le statut est obligatoire")
-        @Pattern(regexp = "^(brouillon|publiee|archivee)$",
-                 message = "Statut invalide. Valeurs acceptees: brouillon, publiee, archivee")
+        @Pattern(regexp = "^(brouillon|publiee|archivee|recommandee)$",
+                 message = "Statut invalide. Valeurs acceptees: brouillon, publiee, archivee, recommandee")
         String statut
 ) {}
 

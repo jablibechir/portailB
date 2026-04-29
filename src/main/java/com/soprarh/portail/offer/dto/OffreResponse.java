@@ -21,6 +21,10 @@ public record OffreResponse(
         UUID creeParId,
         LocalDateTime dateCreation,
         LocalDate dateExpiration,
-        String typeEmploi
+        String typeEmploi,
+        UUID recommandeeParId,
+        String recommandeeParNom,
+        String commentaireManager,
+        LocalDateTime dateRecommandation
 ) {}
 

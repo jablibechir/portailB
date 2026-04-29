@@ -175,5 +175,45 @@ public class EntretienController {
         return ResponseEntity.ok(
                 ApiResponse.success(entretiens, "Calendrier Manager — entretiens a venir: " + entretiens.size()));
     }
+
+    // ==================== Endpoints TOUS les entretiens (vue liste) ====================
+
+    /**
+     * Tous les entretiens (tous statuts, toutes dates) pour la vue tableau RH.
+     * GET /api/entretiens/tous/rh
+     */
+    @GetMapping("/tous/rh")
+    @PreAuthorize("hasAuthority('PLAN_INTERVIEWS')")
+    public ResponseEntity<ApiResponse<List<EntretienResponse>>> getAllEntretiensRh() {
+        List<EntretienResponse> entretiens = entretienService.getAllEntretiensRh();
+        return ResponseEntity.ok(
+                ApiResponse.success(entretiens, "Tous les entretiens: " + entretiens.size()));
+    }
+
+    /**
+     * Tous les entretiens d'un manager (tous statuts, toutes dates).
+     * GET /api/entretiens/tous/manager
+     */
+    @GetMapping("/tous/manager")
+    @PreAuthorize("hasAuthority('VIEW_CALENDAR')")
+    public ResponseEntity<ApiResponse<List<EntretienResponse>>> getAllEntretiensManager(
+            @AuthenticationPrincipal Utilisateur currentUser) {
+        List<EntretienResponse> entretiens = entretienService.getAllEntretiensManager(currentUser.getId());
+        return ResponseEntity.ok(
+                ApiResponse.success(entretiens, "Tous les entretiens manager: " + entretiens.size()));
+    }
+
+    /**
+     * Tous les entretiens d'un candidat (tous statuts, toutes dates).
+     * GET /api/entretiens/tous/candidat
+     */
+    @GetMapping("/tous/candidat")
+    @PreAuthorize("hasAuthority('VIEW_CALENDAR')")
+    public ResponseEntity<ApiResponse<List<EntretienResponse>>> getAllEntretiensCandidat(
+            @AuthenticationPrincipal Utilisateur currentUser) {
+        List<EntretienResponse> entretiens = entretienService.getAllEntretiensCandidat(currentUser.getId());
+        return ResponseEntity.ok(
+                ApiResponse.success(entretiens, "Tous les entretiens candidat: " + entretiens.size()));
+    }
 }
 

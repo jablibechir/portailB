@@ -8,6 +8,7 @@ package com.soprarh.portail.offer.entity;
 public enum StatutOffre {
     brouillon,
     publiee,
-    archivee
+    archivee,
+    recommandee
 }
 

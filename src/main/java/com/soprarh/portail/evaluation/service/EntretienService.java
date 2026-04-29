@@ -223,6 +223,30 @@ public class EntretienService {
         return entretienMapper.toResponse(saved);
     }
 
+    /**
+     * Retourne TOUS les entretiens (tous statuts, toutes dates) pour la vue liste RH.
+     */
+    @Transactional(readOnly = true)
+    public List<EntretienResponse> getAllEntretiensRh() {
+        return entretienMapper.toResponseList(entretienRepository.findAllOrderByDateDesc());
+    }
+
+    /**
+     * Retourne TOUS les entretiens d'un manager (tous statuts, toutes dates).
+     */
+    @Transactional(readOnly = true)
+    public List<EntretienResponse> getAllEntretiensManager(UUID managerId) {
+        return entretienMapper.toResponseList(entretienRepository.findAllByManagerId(managerId));
+    }
+
+    /**
+     * Retourne TOUS les entretiens d'un candidat (tous statuts, toutes dates).
+     */
+    @Transactional(readOnly = true)
+    public List<EntretienResponse> getAllEntretiensCandidat(UUID candidatId) {
+        return entretienMapper.toResponseList(entretienRepository.findAllByCandidatId(candidatId));
+    }
+
     // ==================== Methodes privees ====================
 
     private TypeEntretien parseType(String type) {

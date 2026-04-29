@@ -94,5 +94,33 @@ public interface EntretienRepository extends JpaRepository<Entretien, UUID> {
             @Param("managerId") UUID managerId,
             @Param("now") LocalDateTime now,
             @Param("statuts") List<StatutEntretien> statuts);
+
+    /**
+     * Retourne TOUS les entretiens (sans filtre de date ni de statut) pour la vue RH.
+     */
+    @Query("SELECT e FROM Entretien e ORDER BY e.dateEntretien DESC")
+    List<Entretien> findAllOrderByDateDesc();
+
+    /**
+     * Retourne TOUS les entretiens d'un manager (sans filtre de date ni de statut).
+     */
+    @Query("""
+        SELECT e FROM Entretien e
+        JOIN e.candidature c
+        WHERE e.planifiePar.id = :managerId OR c.manager.id = :managerId
+        ORDER BY e.dateEntretien DESC
+    """)
+    List<Entretien> findAllByManagerId(@Param("managerId") UUID managerId);
+
+    /**
+     * Retourne TOUS les entretiens d'un candidat (sans filtre de date ni de statut).
+     */
+    @Query("""
+        SELECT e FROM Entretien e
+        JOIN e.candidature c
+        WHERE c.candidat.id = :candidatId
+        ORDER BY e.dateEntretien DESC
+    """)
+    List<Entretien> findAllByCandidatId(@Param("candidatId") UUID candidatId);
 }
 

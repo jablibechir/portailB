@@ -22,5 +22,10 @@ public interface EvaluationRepository extends JpaRepository<Evaluation, UUID> {
      * Trouve les evaluations faites par un evaluateur.
      */
     List<Evaluation> findByEvaluateurIdOrderByDateEvaluationDesc(UUID evaluateurId);
+
+    /**
+     * Trouve toutes les evaluations triees par date decroissante.
+     */
+    List<Evaluation> findAllByOrderByDateEvaluationDesc();
 }
 

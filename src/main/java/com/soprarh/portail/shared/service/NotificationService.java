@@ -265,6 +265,26 @@ public class NotificationService {
         log.info("Notification nouveau compte envoyee a {} RH pour: {}", rhUsers.size(), nom);
     }
 
+    /**
+     * Notifier tous les RH qu'un Manager a recommande un nouveau poste.
+     */
+    @Transactional
+    public void notifierRhRecommandationRecue(OffreEmploi offre, Utilisateur manager) {
+        String managerNom = manager.getPrenom() + " " + manager.getNom();
+        List<Utilisateur> rhUsers = utilisateurRepository.findByTypeUtilisateur(TypeUtilisateur.rh);
+        for (Utilisateur rh : rhUsers) {
+            Notification notification = Notification.builder()
+                    .utilisateur(rh)
+                    .titre("Nouvelle recommandation de poste")
+                    .message("Le Manager " + managerNom + " recommande un nouveau poste : \""
+                            + offre.getTitre() + "\".")
+                    .type(TypeNotification.recommandation_recue)
+                    .build();
+            notificationRepository.save(notification);
+        }
+        log.info("Notification recommandation envoyee a {} RH pour offre: {}", rhUsers.size(), offre.getTitre());
+    }
+
     // ================================================================
     //                  NOTIFICATIONS MANAGER
     // ================================================================
@@ -362,6 +382,43 @@ public class NotificationService {
             notificationRepository.save(notification);
         }
         log.info("Notification mise a jour candidature envoyee a {} Managers", managers.size());
+    }
+
+    /**
+     * Notifier le Manager que sa recommandation a ete publiee par le RH.
+     */
+    @Transactional
+    public void notifierManagerRecommandationPubliee(OffreEmploi offre) {
+        if (offre.getRecommandeePar() == null) return;
+        Notification notification = Notification.builder()
+                .utilisateur(offre.getRecommandeePar())
+                .titre("Recommandation publiee")
+                .message("Votre recommandation pour le poste \"" + offre.getTitre()
+                        + "\" a ete publiee par le RH.")
+                .type(TypeNotification.recommandation_publiee)
+                .build();
+        notificationRepository.save(notification);
+        log.info("Notification recommandation publiee envoyee au manager: {}", offre.getRecommandeePar().getId());
+    }
+
+    /**
+     * Notifier le Manager que sa recommandation a ete refusee par le RH.
+     */
+    @Transactional
+    public void notifierManagerRecommandationRefusee(OffreEmploi offre, String motif) {
+        if (offre.getRecommandeePar() == null) return;
+        String msg = "Votre recommandation pour le poste \"" + offre.getTitre() + "\" a ete refusee par le RH.";
+        if (motif != null && !motif.isBlank()) {
+            msg += " Motif : " + motif;
+        }
+        Notification notification = Notification.builder()
+                .utilisateur(offre.getRecommandeePar())
+                .titre("Recommandation refusee")
+                .message(msg)
+                .type(TypeNotification.recommandation_refusee)
+                .build();
+        notificationRepository.save(notification);
+        log.info("Notification recommandation refusee envoyee au manager: {}", offre.getRecommandeePar().getId());
     }
 
     // ================================================================

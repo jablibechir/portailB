@@ -52,5 +52,15 @@ public interface OffreEmploiRepository extends JpaRepository<OffreEmploi, UUID> 
      * Trouve toutes les offres creees par un utilisateur specifique.
      */
     List<OffreEmploi> findByCreeParId(UUID utilisateurId);
+
+    /**
+     * Trouve toutes les offres recommandees par un manager.
+     */
+    List<OffreEmploi> findByRecommandeeParIdOrderByDateRecommandationDesc(UUID managerId);
+
+    /**
+     * Trouve toutes les offres avec le statut recommandee.
+     */
+    List<OffreEmploi> findByStatutOrderByDateRecommandationDesc(StatutOffre statut);
 }
 

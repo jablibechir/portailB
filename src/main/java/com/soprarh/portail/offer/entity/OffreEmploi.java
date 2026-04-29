@@ -125,5 +125,27 @@ public class OffreEmploi {
     @Column(name = "type_emploi", length = 30)
     @Builder.Default
     private String typeEmploi = "Emploi à temps plein";
+
+    /**
+     * Manager qui a recommande ce poste (nullable).
+     * FK: recommandee_par -> utilisateurs(id)
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "recommandee_par")
+    private Utilisateur recommandeePar;
+
+    /**
+     * Commentaire du Manager expliquant la recommandation (nullable).
+     * Colonne: commentaire_manager text
+     */
+    @Column(name = "commentaire_manager", columnDefinition = "text")
+    private String commentaireManager;
+
+    /**
+     * Date de la recommandation (nullable).
+     * Colonne: date_recommandation timestamp
+     */
+    @Column(name = "date_recommandation")
+    private LocalDateTime dateRecommandation;
 }
 
