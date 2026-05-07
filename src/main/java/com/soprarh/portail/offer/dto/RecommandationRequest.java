@@ -23,6 +23,12 @@ public record RecommandationRequest(
         @Size(max = 200, message = "La formation ne peut pas depasser 200 caracteres")
         String formationRequise,
 
+        String languesRequises,
+
+        String certificationsRequises,
+
+        String softSkillsRequis,
+
         /**
          * Type d'emploi: "Emploi a temps plein", "Stage", "Emploi a court terme", "Alternance".
          */

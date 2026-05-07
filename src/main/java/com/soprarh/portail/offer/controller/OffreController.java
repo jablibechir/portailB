@@ -225,6 +225,9 @@ public class OffreController {
                     (String) body.get("competencesRequises"),
                     (String) body.get("experienceRequise"),
                     (String) body.get("formationRequise"),
+                    (String) body.get("languesRequises"),
+                    (String) body.get("certificationsRequises"),
+                    (String) body.get("softSkillsRequis"),
                     null, // dateExpiration
                     (String) body.get("typeEmploi")
             );

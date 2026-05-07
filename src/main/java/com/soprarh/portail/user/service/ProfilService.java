@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -36,6 +37,7 @@ public class ProfilService {
     private final ProfilRepository profilRepository;
     private final UtilisateurRepository utilisateurRepository;
     private final ProfilMapper profilMapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Value("${app.upload.photos-dir:uploads/photos}")
     private String photosDir;
@@ -174,6 +176,25 @@ public class ProfilService {
                 .utilisateur(utilisateur)
                 .build();
         return profilRepository.save(profil);
+    }
+
+    // ==================== Password ====================
+
+    /**
+     * Modifier le mot de passe de l'utilisateur.
+     * Verifie l'ancien mot de passe avant d'appliquer le nouveau.
+     */
+    @Transactional
+    public void changePassword(UUID utilisateurId, String currentPassword, String newPassword) {
+        Utilisateur utilisateur = findUtilisateurOrThrow(utilisateurId);
+
+        if (!passwordEncoder.matches(currentPassword, utilisateur.getMotDePasse())) {
+            throw new BusinessException("Le mot de passe actuel est incorrect.", HttpStatus.BAD_REQUEST);
+        }
+
+        utilisateur.setMotDePasse(passwordEncoder.encode(newPassword));
+        utilisateurRepository.save(utilisateur);
+        log.info("Mot de passe modifie pour utilisateur: {}", utilisateurId);
     }
 
     // ==================== Methodes privees ====================

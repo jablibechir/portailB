@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 
 /**
  * Controller REST pour la gestion des profils utilisateur.
@@ -118,6 +119,30 @@ public class ProfilController {
         } catch (MalformedURLException e) {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    /**
+     * Modifier son mot de passe.
+     * PUT /api/profil/password
+     * Body: { "currentPassword": "...", "newPassword": "..." }
+     */
+    @PutMapping("/password")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<Void>> changePassword(
+            @AuthenticationPrincipal Utilisateur currentUser,
+            @RequestBody Map<String, String> request) {
+
+        String currentPassword = request.get("currentPassword");
+        String newPassword = request.get("newPassword");
+
+        if (currentPassword == null || newPassword == null || newPassword.length() < 6) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("Le nouveau mot de passe doit contenir au moins 6 caractères"));
+        }
+
+        profilService.changePassword(currentUser.getId(), currentPassword, newPassword);
+
+        return ResponseEntity.ok(ApiResponse.success(null, "Mot de passe modifié avec succès"));
     }
 }
 

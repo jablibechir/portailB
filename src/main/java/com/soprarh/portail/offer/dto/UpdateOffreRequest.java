@@ -23,6 +23,12 @@ public record UpdateOffreRequest(
 
         String formationRequise,
 
+        String languesRequises,
+
+        String certificationsRequises,
+
+        String softSkillsRequis,
+
         /**
          * Date d'expiration de l'offre (optionnelle).
          */

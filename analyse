@@ -904,3 +904,110 @@ D. RÉSUMÉ ET PRIORITÉS
   - /api/entretiens/{id} et /mes-planifies (redondants)
 
 
+================================================================================
+               EXPLICATION — TABLE "permissions"
+================================================================================
+
+La table "permissions" est au cœur du système de sécurité RBAC
+(Role-Based Access Control) de l'application. Voici son utilité :
+
+  1. CONTRÔLE D'ACCÈS GRANULAIRE
+     Chaque permission représente une action précise dans le système :
+       - VIEW_OFFERS ........... Consulter les offres publiées
+       - MANAGE_OFFERS ......... Créer/modifier/supprimer des offres
+       - APPLY_OFFERS .......... Postuler aux offres (candidat)
+       - MANAGE_USERS .......... Gérer les utilisateurs (RH)
+       - EVALUATE_CANDIDATES ... Évaluer des candidatures (RH)
+       - VALIDATE_CANDIDATES ... Valider/rejeter des candidatures (manager)
+       - PLAN_INTERVIEWS ....... Planifier des entretiens (RH)
+       - VIEW_CALENDAR ......... Consulter le calendrier (candidat/manager)
+       - VIEW_NOTIFICATIONS .... Voir ses notifications
+       - MANAGE_SCORING_CRITERIA  Gérer les critères de scoring
+       - VIEW_STATS / VIEW_STATISTICS  Consulter le dashboard
+
+  2. CHAÎNE DE SÉCURITÉ
+     Utilisateur → (utilisateur_roles) → Role → (role_permissions) → Permission
+     Exemple : un Candidat a le rôle CANDIDAT, qui possède les permissions
+     VIEW_OFFERS, APPLY_OFFERS, VIEW_CALENDAR, VIEW_NOTIFICATIONS.
+
+  3. UTILISATION DANS SPRING SECURITY
+     Dans Utilisateur.getAuthorities(), les permissions (pas les rôles)
+     sont converties en GrantedAuthority. Ensuite, les contrôleurs utilisent
+     @PreAuthorize("hasAuthority('MANAGE_OFFERS')") pour protéger les endpoints.
+
+  4. POURQUOI PAS JUSTE DES RÔLES ?
+     Les permissions permettent un contrôle plus fin. On peut ajouter ou
+     retirer une capacité à un rôle sans modifier le code Java. Par exemple,
+     donner MANAGE_SCORING_CRITERIA au rôle MANAGER sans toucher au code.
+
+  En résumé : la table "permissions" est le mécanisme qui détermine
+  QUI peut faire QUOI dans l'application, de façon flexible et sécurisée.
+
+
+================================================================================
+               EXPLICATION — CLASSE "OffreEmploi"
+================================================================================
+
+Fichier : src/main/java/com/soprarh/portail/offer/entity/OffreEmploi.java
+Table   : offres_emploi (schema public)
+
+  RÔLE DANS L'APPLICATION
+  ───────────────────────
+  OffreEmploi est l'entité centrale du module de recrutement. Elle représente
+  une offre d'emploi publiée par un Responsable RH. Toute la logique métier
+  du portail gravite autour de cette classe :
+    - Les candidats consultent et postulent aux offres
+    - Le scoring IA compare les CVs aux critères de l'offre
+    - Les critères de scoring sont rattachés à une offre
+    - Les candidatures sont liées à une offre
+
+  ATTRIBUTS
+  ─────────
+  Identité :
+    - id (UUID PK)          Identifiant unique, auto-généré
+    - titre (varchar 200)   Titre du poste (ex: "Développeur Java Senior")
+    - description (text)    Description détaillée du poste et des missions
+
+  Exigences du poste :
+    - competencesRequises (text)      Compétences techniques attendues
+    - experienceRequise (varchar 100) Niveau d'expérience (ex: "3-5 ans")
+    - formationRequise (varchar 200)  Diplôme requis (ex: "Bac+5 Informatique")
+    - languesRequises (text)          Langues demandées (ex: "Français, Anglais B2")
+    - certificationsRequises (text)   Certifications requises (ex: "AWS Certified")
+    - softSkillsRequis (text)         Qualités comportementales (ex: "leadership")
+
+  Gestion du cycle de vie :
+    - statut (enum)         brouillon → publiee → archivee (ou recommandee)
+    - datePublication       Date de mise en ligne de l'offre
+    - dateExpiration        Date limite de candidature (nullable)
+    - dateCreation          Horodatage de création en base
+    - typeEmploi            "Emploi à temps plein", "Stage", "Alternance", etc.
+
+  Recommandation par le Manager :
+    - recommandeePar (FK)       Manager qui a recommandé le poste
+    - commentaireManager (text) Justification de la recommandation
+    - dateRecommandation        Quand la recommandation a été faite
+
+  RELATIONS
+  ─────────
+    - creePar → Utilisateur (ManyToOne)        RH qui a créé l'offre
+    - recommandeePar → Utilisateur (ManyToOne) Manager qui recommande (nullable)
+    - → Candidature (OneToMany inverse)        Candidatures reçues pour cette offre
+    - → CritereScoring (OneToMany inverse)     Critères de scoring définis pour l'offre
+
+  WORKFLOW MÉTIER
+  ───────────────
+    1. Le RH crée une offre (statut = brouillon)
+    2. Le RH publie l'offre (statut = publiee) → visible aux candidats
+    3. Les candidats postulent → Candidature + CV + scoring IA automatique
+    4. Le RH peut archiver l'offre (statut = archivee) quand elle expire
+    5. Un Manager peut recommander une offre (statut = recommandee)
+
+  UTILISATION PAR L'IA (SCORING)
+  ──────────────────────────────
+    Le microservice Python utilise les champs titre, description,
+    competencesRequises, experienceRequise et formationRequise pour
+    calculer la similarité cosinus entre le CV du candidat et l'offre.
+    Ces champs sont envoyés au endpoint POST /api/score du microservice.
+
+

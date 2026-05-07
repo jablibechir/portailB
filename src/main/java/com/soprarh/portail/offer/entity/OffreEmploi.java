@@ -8,23 +8,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-/**
- * Entite mappant exactement la table "offres_emploi".
- *
- * CREATE TABLE public.offres_emploi (
- *   id                   uuid DEFAULT gen_random_uuid() NOT NULL,
- *   titre                varchar(200) NOT NULL,
- *   description          text,
- *   competences_requises text,
- *   experience_requise   varchar(100),
- *   formation_requise    varchar(200),
- *   date_publication     date DEFAULT CURRENT_DATE,
- *   statut               varchar(20) DEFAULT 'brouillon',
- *   cree_par             uuid -> FK utilisateurs(id),
- *   date_creation        timestamp DEFAULT CURRENT_TIMESTAMP,
- *   date_expiration      date
- * );
- */
+
 @Entity
 @Table(name = "offres_emploi", schema = "public")
 @Getter
@@ -116,6 +100,27 @@ public class OffreEmploi {
      */
     @Column(name = "date_expiration")
     private LocalDate dateExpiration;
+
+    /**
+     * Langues requises pour le poste.
+     * Colonne: langues_requises text
+     */
+    @Column(name = "langues_requises", columnDefinition = "text")
+    private String languesRequises;
+
+    /**
+     * Certifications requises pour le poste.
+     * Colonne: certifications_requises text
+     */
+    @Column(name = "certifications_requises", columnDefinition = "text")
+    private String certificationsRequises;
+
+    /**
+     * Soft skills requis pour le poste.
+     * Colonne: soft_skills_requis text
+     */
+    @Column(name = "soft_skills_requis", columnDefinition = "text")
+    private String softSkillsRequis;
 
     /**
      * Type d'emploi de l'offre.

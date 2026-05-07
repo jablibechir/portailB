@@ -4,6 +4,8 @@ import com.soprarh.portail.offer.entity.OffreEmploi;
 import com.soprarh.portail.user.entity.Utilisateur;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -80,10 +82,11 @@ public class CritereScoring {
 
     /**
      * Type de critere de scoring.
-     * Colonne: type varchar(50)
+     * Colonne: type type_critere (PostgreSQL native enum)
      * CHECK (type IN ('COMPETENCES','EXPERIENCE','FORMATION','LANGUES','CERTIFICATIONS','SOFT_SKILLS'))
      */
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "type", length = 50)
     private TypeCritere type;
 }

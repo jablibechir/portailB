@@ -60,6 +60,9 @@ public class OffreService {
                 .competencesRequises(request.competencesRequises())
                 .experienceRequise(request.experienceRequise())
                 .formationRequise(request.formationRequise())
+                .languesRequises(request.languesRequises())
+                .certificationsRequises(request.certificationsRequises())
+                .softSkillsRequis(request.softSkillsRequis())
                 .statut(statut)
                 .datePublication(statut == StatutOffre.publiee ? LocalDate.now() : null)
                 .dateExpiration(request.dateExpiration())
@@ -99,6 +102,15 @@ public class OffreService {
         }
         if (request.formationRequise() != null) {
             offre.setFormationRequise(request.formationRequise());
+        }
+        if (request.languesRequises() != null) {
+            offre.setLanguesRequises(request.languesRequises());
+        }
+        if (request.certificationsRequises() != null) {
+            offre.setCertificationsRequises(request.certificationsRequises());
+        }
+        if (request.softSkillsRequis() != null) {
+            offre.setSoftSkillsRequis(request.softSkillsRequis());
         }
         if (request.dateExpiration() != null) {
             offre.setDateExpiration(request.dateExpiration());
@@ -220,6 +232,9 @@ public class OffreService {
                 .competencesRequises(request.competencesRequises())
                 .experienceRequise(request.experienceRequise())
                 .formationRequise(request.formationRequise())
+                .languesRequises(request.languesRequises())
+                .certificationsRequises(request.certificationsRequises())
+                .softSkillsRequis(request.softSkillsRequis())
                 .typeEmploi(request.typeEmploi() != null && !request.typeEmploi().isBlank()
                         ? request.typeEmploi() : "Emploi à temps plein")
                 .statut(StatutOffre.recommandee)
@@ -275,6 +290,9 @@ public class OffreService {
             if (updates.competencesRequises() != null) offre.setCompetencesRequises(updates.competencesRequises());
             if (updates.experienceRequise() != null) offre.setExperienceRequise(updates.experienceRequise());
             if (updates.formationRequise() != null) offre.setFormationRequise(updates.formationRequise());
+            if (updates.languesRequises() != null) offre.setLanguesRequises(updates.languesRequises());
+            if (updates.certificationsRequises() != null) offre.setCertificationsRequises(updates.certificationsRequises());
+            if (updates.softSkillsRequis() != null) offre.setSoftSkillsRequis(updates.softSkillsRequis());
             if (updates.typeEmploi() != null && !updates.typeEmploi().isBlank()) offre.setTypeEmploi(updates.typeEmploi());
         }
 

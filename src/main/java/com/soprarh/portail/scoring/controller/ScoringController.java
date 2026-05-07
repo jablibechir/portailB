@@ -75,6 +75,18 @@ public class ScoringController {
         return ResponseEntity.ok(ApiResponse.success(null, "Critère supprimé avec succès"));
     }
 
+    /**
+     * GET /api/scoring/offre/{offreId}/valid
+     * Vérifier si les critères d'une offre sont valides (total = 100%).
+     */
+    @GetMapping("/offre/{offreId}/valid")
+    @PreAuthorize("hasAuthority('MANAGE_SCORING_CRITERIA')")
+    public ResponseEntity<ApiResponse<Boolean>> isCriteresValid(@PathVariable UUID offreId) {
+        boolean valid = scoringService.isCriteresValid(offreId);
+        return ResponseEntity.ok(ApiResponse.success(valid,
+                valid ? "Configuration valide (total = 100%)" : "Configuration invalide (total ≠ 100%)"));
+    }
+
     // ═══════════════════════════════════════════
     // SCORING IA
     // ═══════════════════════════════════════════

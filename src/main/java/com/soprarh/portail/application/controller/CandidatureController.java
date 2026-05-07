@@ -204,13 +204,27 @@ public class CandidatureController {
     /**
      * Voir le detail d'une candidature.
      * GET /api/candidatures/{id}
-     * Accessible par: RH (permission EVALUATE_CANDIDATES)
+     * Accessible par: RH, Manager, ou le candidat proprietaire.
      */
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('EVALUATE_CANDIDATES')")
-    public ResponseEntity<ApiResponse<CandidatureResponse>> getCandidature(@PathVariable UUID id) {
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<CandidatureResponse>> getCandidature(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal Utilisateur currentUser) {
 
         CandidatureResponse candidature = candidatureService.getCandidatureById(id);
+
+        // Verifier les droits: RH (EVALUATE_CANDIDATES), Manager (VIEW_MANAGER_CANDIDATES), ou proprietaire
+        boolean isRh = currentUser.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("EVALUATE_CANDIDATES"));
+        boolean isManager = currentUser.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("VIEW_MANAGER_CANDIDATES"));
+        boolean isOwner = currentUser.getId().equals(candidature.candidatId());
+
+        if (!isRh && !isManager && !isOwner) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(ApiResponse.error("Acces refuse a cette candidature"));
+        }
 
         return ResponseEntity.ok(ApiResponse.success(candidature));
     }
