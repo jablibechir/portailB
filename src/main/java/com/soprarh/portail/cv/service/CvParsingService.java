@@ -175,7 +175,11 @@ public class CvParsingService {
 
     private String toJsonString(Object obj) {
         if (obj == null) return null;
-        return obj.toString();
+        try {
+            return new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(obj);
+        } catch (Exception e) {
+            return obj.toString();
+        }
     }
 }
 

@@ -109,15 +109,27 @@ public class AuthService {
         log.info("Profil vide cree pour utilisateur : id={}", saved.getId());
 
         // 7. Envoi de l'email de verification
-        emailService.sendVerificationEmail(
-                saved.getEmail(),
-                saved.getPrenom(),
-                verificationCode,
-                baseUrl
-        );
+        try {
+            emailService.sendVerificationEmail(
+                    saved.getEmail(),
+                    saved.getPrenom(),
+                    verificationCode,
+                    baseUrl
+            );
+        } catch (Exception e) {
+            log.error("Echec de l'envoi de l'email de verification pour : {}. Code: {}", 
+                    saved.getEmail(), verificationCode, e);
+            log.warn("CODE DE VERIFICATION (pour dev) : http://localhost:8080/api/auth/verify?code={}", verificationCode);
+            // En dev, on continue meme si l'email echoue
+            // En prod, vous pourriez vouloir throw l'exception
+        }
 
         // Notification RH -> nouveau compte cree
-        notificationService.notifierRhNouveauCompte(saved);
+        try {
+            notificationService.notifierRhNouveauCompte(saved);
+        } catch (Exception e) {
+            log.error("Echec de la notification RH pour le compte : {}", saved.getId(), e);
+        }
 
         return toProfileResponse(saved);
     }
