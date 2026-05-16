@@ -143,11 +143,11 @@ public class Utilisateur implements UserDetails {
     /**
      * Construit les GrantedAuthority a partir des PERMISSIONS des roles.
      * Chaine : roles -> permissions -> code -> SimpleGrantedAuthority
-     * Ex: "VIEW_OFFERS", "MANAGE_USERS"
+     * Ex: "VOIR_OFFRES", "GERER_UTILISATEURS"
      *
      * Pourquoi les permissions et pas les noms de roles ?
      * Les permissions sont granulaires et permettent un RBAC fin.
-     * Spring Security @PreAuthorize("hasAuthority('MANAGE_USERS')") fonctionne directement.
+     * Spring Security @PreAuthorize("hasAuthority('GERER_UTILISATEURS')") fonctionne directement.
      */
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

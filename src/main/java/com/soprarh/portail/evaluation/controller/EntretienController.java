@@ -49,7 +49,7 @@ public class EntretienController {
      * Accessible par: RH (permission PLAN_INTERVIEWS)
      */
     @PostMapping
-    @PreAuthorize("hasAuthority('PLAN_INTERVIEWS')")
+    @PreAuthorize("hasAuthority('PLANIFIER_ENTRETIEN')")
     public ResponseEntity<ApiResponse<EntretienResponse>> planifierEntretien(
             @Valid @RequestBody CreateEntretienRequest request,
             @AuthenticationPrincipal Utilisateur currentUser) {
@@ -67,7 +67,7 @@ public class EntretienController {
      * Accessible par: RH et Manager (permission EVALUATE_CANDIDATES)
      */
     @GetMapping("/candidature/{candidatureId}")
-    @PreAuthorize("hasAuthority('EVALUATE_CANDIDATES')")
+    @PreAuthorize("hasAuthority('EVALUER_CANDIDATURE')")
     public ResponseEntity<ApiResponse<List<EntretienResponse>>> getEntretiensByCandidature(
             @PathVariable UUID candidatureId) {
 
@@ -83,7 +83,7 @@ public class EntretienController {
      * Accessible par: RH (permission PLAN_INTERVIEWS)
      */
     @GetMapping("/mes-planifies")
-    @PreAuthorize("hasAuthority('PLAN_INTERVIEWS')")
+    @PreAuthorize("hasAuthority('PLANIFIER_ENTRETIEN')")
     public ResponseEntity<ApiResponse<List<EntretienResponse>>> getMesEntretiensPlanifies(
             @AuthenticationPrincipal Utilisateur currentUser) {
 
@@ -99,7 +99,7 @@ public class EntretienController {
      * Accessible par: RH et Manager (permission EVALUATE_CANDIDATES)
      */
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('EVALUATE_CANDIDATES')")
+    @PreAuthorize("hasAuthority('EVALUER_CANDIDATURE')")
     public ResponseEntity<ApiResponse<EntretienResponse>> getEntretienById(@PathVariable UUID id) {
 
         EntretienResponse entretien = entretienService.getEntretienById(id);
@@ -114,7 +114,7 @@ public class EntretienController {
      * Accessible par: RH (permission PLAN_INTERVIEWS)
      */
     @PatchMapping("/{id}/statut")
-    @PreAuthorize("hasAuthority('PLAN_INTERVIEWS')")
+    @PreAuthorize("hasAuthority('PLANIFIER_ENTRETIEN')")
     public ResponseEntity<ApiResponse<EntretienResponse>> updateStatut(
             @PathVariable UUID id,
             @RequestParam String statut) {
@@ -133,7 +133,7 @@ public class EntretienController {
      * Accessible par: Candidat (permission VIEW_CALENDAR)
      */
     @GetMapping("/mes-a-venir")
-    @PreAuthorize("hasAuthority('VIEW_CALENDAR')")
+    @PreAuthorize("hasAuthority('VOIR_CALENDRIER')")
     public ResponseEntity<ApiResponse<List<EntretienResponse>>> getMesEntretiensAVenir(
             @AuthenticationPrincipal Utilisateur currentUser) {
 
@@ -151,7 +151,7 @@ public class EntretienController {
      * Accessible par: RH (permission PLAN_INTERVIEWS)
      */
     @GetMapping("/calendrier/rh")
-    @PreAuthorize("hasAuthority('PLAN_INTERVIEWS')")
+    @PreAuthorize("hasAuthority('VOIR_CALENDRIER')")
     public ResponseEntity<ApiResponse<List<EntretienResponse>>> getCalendrierRh() {
 
         List<EntretienResponse> entretiens = entretienService.getCalendrierRh();
@@ -166,7 +166,7 @@ public class EntretienController {
      * Accessible par: Manager (permission VIEW_CALENDAR)
      */
     @GetMapping("/calendrier/manager")
-    @PreAuthorize("hasAuthority('VIEW_CALENDAR')")
+    @PreAuthorize("hasAuthority('VOIR_CALENDRIER')")
     public ResponseEntity<ApiResponse<List<EntretienResponse>>> getCalendrierManager(
             @AuthenticationPrincipal Utilisateur currentUser) {
 
@@ -183,7 +183,7 @@ public class EntretienController {
      * GET /api/entretiens/tous/rh
      */
     @GetMapping("/tous/rh")
-    @PreAuthorize("hasAuthority('PLAN_INTERVIEWS')")
+    @PreAuthorize("hasAuthority('VOIR_CALENDRIER')")
     public ResponseEntity<ApiResponse<List<EntretienResponse>>> getAllEntretiensRh() {
         List<EntretienResponse> entretiens = entretienService.getAllEntretiensRh();
         return ResponseEntity.ok(
@@ -195,7 +195,7 @@ public class EntretienController {
      * GET /api/entretiens/tous/manager
      */
     @GetMapping("/tous/manager")
-    @PreAuthorize("hasAuthority('VIEW_CALENDAR')")
+    @PreAuthorize("hasAuthority('VOIR_CALENDRIER')")
     public ResponseEntity<ApiResponse<List<EntretienResponse>>> getAllEntretiensManager(
             @AuthenticationPrincipal Utilisateur currentUser) {
         List<EntretienResponse> entretiens = entretienService.getAllEntretiensManager(currentUser.getId());
@@ -208,7 +208,7 @@ public class EntretienController {
      * GET /api/entretiens/tous/candidat
      */
     @GetMapping("/tous/candidat")
-    @PreAuthorize("hasAuthority('VIEW_CALENDAR')")
+    @PreAuthorize("hasAuthority('VOIR_CALENDRIER')")
     public ResponseEntity<ApiResponse<List<EntretienResponse>>> getAllEntretiensCandidat(
             @AuthenticationPrincipal Utilisateur currentUser) {
         List<EntretienResponse> entretiens = entretienService.getAllEntretiensCandidat(currentUser.getId());

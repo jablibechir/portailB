@@ -35,7 +35,7 @@ public class CvController {
      * Uses the detail entities for properly structured data.
      */
     @GetMapping("/{candidatureId}/donnees")
-    @PreAuthorize("hasAuthority('EVALUATE_CANDIDATES') or hasAuthority('APPLY_OFFERS')")
+    @PreAuthorize("hasAuthority('EVALUER_CANDIDATURE') or hasAuthority('POSTULER_OFFRE')")
     @Transactional(readOnly = true)
     public ResponseEntity<ApiResponse<Map<String, Object>>> getDonnees(@PathVariable UUID candidatureId) {
         Map<String, Object> payload = new LinkedHashMap<>();

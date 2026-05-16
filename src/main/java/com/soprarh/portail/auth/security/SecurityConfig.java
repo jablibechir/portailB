@@ -41,7 +41,7 @@ import java.util.List;
  *    C'est ce provider qu'AuthenticationManager utilisera.
  *
  * 4. @EnableMethodSecurity : active @PreAuthorize sur les controllers.
- *    Exemple : @PreAuthorize("hasAuthority('MANAGE_USERS')")
+ *    Exemple : @PreAuthorize("hasAuthority('GERER_UTILISATEURS')")
  *
  * 5. JwtAuthFilter est insere AVANT UsernamePasswordAuthenticationFilter
  *    pour que le SecurityContext soit rempli avant le traitement.

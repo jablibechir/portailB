@@ -152,6 +152,9 @@ public class UserService {
         utilisateur.setPrenom(request.prenom());
         utilisateur.setEmail(request.email());
         utilisateur.setEtat(request.etat());
+        if (request.motDePasse() != null && !request.motDePasse().isBlank()) {
+            utilisateur.setMotDePasse(passwordEncoder.encode(request.motDePasse()));
+        }
 
         Set<Role> newRoles = new HashSet<>();
         newRoles.add(newRole);

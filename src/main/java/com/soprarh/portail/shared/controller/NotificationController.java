@@ -34,10 +34,10 @@ public class NotificationController {
     /**
      * US-NOTIF-07: Consulter toutes mes notifications.
      * GET /api/notifications
-     * Accessible par: tout utilisateur authentifie (permission VIEW_NOTIFICATIONS)
+     * Accessible par: tout utilisateur authentifie (isAuthenticated)
      */
     @GetMapping
-    @PreAuthorize("hasAuthority('VIEW_NOTIFICATIONS')")
+    @PreAuthorize("hasAuthority('VOIR_NOTIFICATIONS')")
     public ResponseEntity<ApiResponse<List<NotificationResponse>>> getMesNotifications(
             @AuthenticationPrincipal Utilisateur currentUser) {
 
@@ -51,10 +51,10 @@ public class NotificationController {
     /**
      * Consulter mes notifications non lues.
      * GET /api/notifications/non-lues
-     * Accessible par: tout utilisateur authentifie (permission VIEW_NOTIFICATIONS)
+     * Accessible par: tout utilisateur authentifie (isAuthenticated)
      */
     @GetMapping("/non-lues")
-    @PreAuthorize("hasAuthority('VIEW_NOTIFICATIONS')")
+    @PreAuthorize("hasAuthority('VOIR_NOTIFICATIONS')")
     public ResponseEntity<ApiResponse<List<NotificationResponse>>> getMesNotificationsNonLues(
             @AuthenticationPrincipal Utilisateur currentUser) {
 
@@ -68,10 +68,10 @@ public class NotificationController {
     /**
      * Compter mes notifications non lues.
      * GET /api/notifications/count
-     * Accessible par: tout utilisateur authentifie (permission VIEW_NOTIFICATIONS)
+     * Accessible par: tout utilisateur authentifie (isAuthenticated)
      */
     @GetMapping("/count")
-    @PreAuthorize("hasAuthority('VIEW_NOTIFICATIONS')")
+    @PreAuthorize("hasAuthority('VOIR_NOTIFICATIONS')")
     public ResponseEntity<ApiResponse<Long>> countNonLues(
             @AuthenticationPrincipal Utilisateur currentUser) {
 
@@ -84,10 +84,10 @@ public class NotificationController {
     /**
      * US-NOTIF-08: Marquer une notification comme lue.
      * PUT /api/notifications/{id}/lire
-     * Accessible par: tout utilisateur authentifie (permission VIEW_NOTIFICATIONS)
+     * Accessible par: tout utilisateur authentifie (isAuthenticated)
      */
     @PutMapping("/{id}/lire")
-    @PreAuthorize("hasAuthority('VIEW_NOTIFICATIONS')")
+    @PreAuthorize("hasAuthority('VOIR_NOTIFICATIONS')")
     public ResponseEntity<ApiResponse<NotificationResponse>> marquerCommeLue(
             @PathVariable UUID id,
             @AuthenticationPrincipal Utilisateur currentUser) {
@@ -102,10 +102,10 @@ public class NotificationController {
     /**
      * US-NOTIF-08: Marquer toutes les notifications comme lues.
      * PUT /api/notifications/lire-toutes
-     * Accessible par: tout utilisateur authentifie (permission VIEW_NOTIFICATIONS)
+     * Accessible par: tout utilisateur authentifie (isAuthenticated)
      */
     @PutMapping("/lire-toutes")
-    @PreAuthorize("hasAuthority('VIEW_NOTIFICATIONS')")
+    @PreAuthorize("hasAuthority('VOIR_NOTIFICATIONS')")
     public ResponseEntity<ApiResponse<Integer>> marquerToutesCommeLues(
             @AuthenticationPrincipal Utilisateur currentUser) {
 

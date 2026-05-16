@@ -45,7 +45,7 @@ public class StatsController {
      * Vue analytique : KPIs + nombre d'entretiens + delai moyen.
      */
     @GetMapping("/dashboard")
-    @PreAuthorize("hasAuthority('VIEW_STATS') or hasAuthority('VIEW_STATISTICS')")
+    @PreAuthorize("hasAuthority('VOIR_STATISTIQUES')")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getDashboard() {
         DashboardResponse base = dashboardService.getDashboard();
 
@@ -83,7 +83,7 @@ public class StatsController {
      * Repartition mensuelle des candidatures sur les 12 derniers mois.
      */
     @GetMapping("/candidatures-par-mois")
-    @PreAuthorize("hasAuthority('VIEW_STATS') or hasAuthority('VIEW_STATISTICS')")
+    @PreAuthorize("hasAuthority('VOIR_STATISTIQUES')")
     public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getCandidaturesParMois() {
         List<Candidature> all = candidatureRepository.findAllOrderByDateDesc();
 
@@ -108,7 +108,7 @@ public class StatsController {
      * Top 10 des offres avec le plus de candidatures.
      */
     @GetMapping("/top-offres")
-    @PreAuthorize("hasAuthority('VIEW_STATS') or hasAuthority('VIEW_STATISTICS')")
+    @PreAuthorize("hasAuthority('VOIR_STATISTIQUES')")
     public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getTopOffres() {
         List<Candidature> all = candidatureRepository.findAllOrderByDateDesc();
 
@@ -143,7 +143,7 @@ public class StatsController {
      * Export des statistiques en PDF (Apache PDFBox) ou Excel XLSX (Apache POI).
      */
     @GetMapping("/export")
-    @PreAuthorize("hasAuthority('EXPORT_REPORTS') or hasAuthority('VIEW_STATISTICS')")
+    @PreAuthorize("hasAuthority('EXPORTER_RAPPORTS')")
     public ResponseEntity<ByteArrayResource> exportRapport(
             @RequestParam(defaultValue = "pdf") String format) {
 

@@ -18,7 +18,7 @@ import java.util.UUID;
 
 /**
  * Controller REST pour la gestion des utilisateurs.
- * Endpoints accessibles par RH uniquement (permission MANAGE_USERS).
+ * Endpoints accessibles par RH uniquement (permission GERER_UTILISATEURS).
  *
  * Endpoints :
  *   GET  /api/users           -> lister tous les utilisateurs
@@ -37,7 +37,7 @@ public class UserController {
      * GET /api/users
      */
     @GetMapping
-    @PreAuthorize("hasAuthority('MANAGE_USERS')")
+    @PreAuthorize("hasAuthority('GERER_UTILISATEURS')")
     public ResponseEntity<ApiResponse<List<UserResponse>>> getAllUsers() {
         List<UserResponse> users = userService.getAllUsers();
         return ResponseEntity.ok(ApiResponse.success(users, "Utilisateurs trouves: " + users.size()));
@@ -51,7 +51,7 @@ public class UserController {
      * POST /api/users
      */
     @PostMapping
-    @PreAuthorize("hasAuthority('MANAGE_USERS')")
+    @PreAuthorize("hasAuthority('GERER_UTILISATEURS')")
     public ResponseEntity<ApiResponse<UserResponse>> createUser(
             @Valid @RequestBody CreateUserRequest request) {
 
@@ -68,7 +68,7 @@ public class UserController {
      * PUT /api/users/{id}/role
      */
     @PutMapping("/{id}/role")
-    @PreAuthorize("hasAuthority('MANAGE_USERS')")
+    @PreAuthorize("hasAuthority('GERER_UTILISATEURS')")
     public ResponseEntity<ApiResponse<UserResponse>> changeUserRole(
             @PathVariable UUID id,
             @Valid @RequestBody ChangeRoleRequest request) {
@@ -87,7 +87,7 @@ public class UserController {
      * PUT /api/users/{id}
      */
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('MANAGE_USERS')")
+    @PreAuthorize("hasAuthority('GERER_UTILISATEURS')")
     public ResponseEntity<ApiResponse<UserResponse>> updateUser(
             @PathVariable UUID id,
             @Valid @RequestBody UpdateUserRequest request) {
@@ -103,10 +103,10 @@ public class UserController {
     /**
      * Lister les managers actifs.
      * GET /api/users/managers
-     * Accessible par: RH (permission EVALUATE_CANDIDATES)
+     * Accessible par: RH (permission EVALUER_CANDIDATURE)
      */
     @GetMapping("/managers")
-    @PreAuthorize("hasAuthority('EVALUATE_CANDIDATES')")
+    @PreAuthorize("hasAuthority('EVALUER_CANDIDATURE')")
     public ResponseEntity<ApiResponse<List<UserResponse>>> getManagers() {
         List<UserResponse> managers = userService.getManagers();
         return ResponseEntity.ok(ApiResponse.success(managers, "Managers trouves: " + managers.size()));

@@ -61,11 +61,11 @@ public class CandidatureController {
     /**
      * US-CAND-01 & US-CAND-02: Deposer une candidature avec CV optionnel.
      * POST /api/candidatures
-     * Accessible par: Candidat (permission APPLY_OFFERS)
+     * Accessible par: Candidat (permission POSTULER_OFFRE)
      * Accepte: multipart/form-data avec champs "offreId", "lettreMotivation" (optionnel), "cv" (optionnel)
      */
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasAuthority('APPLY_OFFERS')")
+    @PreAuthorize("hasAuthority('POSTULER_OFFRE')")
     public ResponseEntity<ApiResponse<CandidatureResponse>> deposerCandidature(
             @RequestParam("offreId") UUID offreId,
             @RequestParam(value = "lettreMotivation", required = false) String lettreMotivation,
@@ -84,10 +84,10 @@ public class CandidatureController {
     /**
      * Voir ses candidatures.
      * GET /api/candidatures/mes
-     * Accessible par: Candidat (permission APPLY_OFFERS)
+     * Accessible par: Candidat (permission POSTULER_OFFRE)
      */
     @GetMapping("/mes")
-    @PreAuthorize("hasAuthority('APPLY_OFFERS')")
+    @PreAuthorize("hasAuthority('POSTULER_OFFRE')")
     public ResponseEntity<ApiResponse<List<CandidatureResponse>>> mesCandidatures(
             @AuthenticationPrincipal Utilisateur currentUser) {
 
@@ -103,10 +103,10 @@ public class CandidatureController {
     /**
      * US-CAND-07: Transmettre une candidature au Manager.
      * POST /api/candidatures/{id}/transmettre?managerId=...
-     * Accessible par: RH (permission TRANSMIT_TO_MANAGER ou EVALUATE_CANDIDATES)
+     * Accessible par: RH (permission TRANSMIT_TO_MANAGER ou EVALUER_CANDIDATURE)
      */
     @PostMapping("/{id}/transmettre")
-    @PreAuthorize("hasAuthority('EVALUATE_CANDIDATES')")
+    @PreAuthorize("hasAuthority('EVALUER_CANDIDATURE')")
     public ResponseEntity<ApiResponse<CandidatureResponse>> transmettreAuManager(
             @PathVariable UUID id,
             @RequestParam UUID managerId) {
@@ -120,10 +120,10 @@ public class CandidatureController {
     /**
      * US-CAND-10: Rejeter une candidature (RH).
      * POST /api/candidatures/{id}/rejeter-rh
-     * Accessible par: RH (permission EVALUATE_CANDIDATES)
+     * Accessible par: RH (permission EVALUER_CANDIDATURE)
      */
     @PostMapping("/{id}/rejeter-rh")
-    @PreAuthorize("hasAuthority('EVALUATE_CANDIDATES')")
+    @PreAuthorize("hasAuthority('EVALUER_CANDIDATURE')")
     public ResponseEntity<ApiResponse<CandidatureResponse>> rejeterParRh(
             @PathVariable UUID id) {
 
@@ -136,10 +136,10 @@ public class CandidatureController {
     /**
      * Passer une candidature en evaluation RH.
      * POST /api/candidatures/{id}/evaluer
-     * Accessible par: RH (permission EVALUATE_CANDIDATES)
+     * Accessible par: RH (permission EVALUER_CANDIDATURE)
      */
     @PostMapping("/{id}/evaluer")
-    @PreAuthorize("hasAuthority('EVALUATE_CANDIDATES')")
+    @PreAuthorize("hasAuthority('EVALUER_CANDIDATURE')")
     public ResponseEntity<ApiResponse<CandidatureResponse>> passerEnEvaluationRh(
             @PathVariable UUID id) {
 
@@ -152,10 +152,10 @@ public class CandidatureController {
     /**
      * Changer le statut d'une candidature (generique).
      * PATCH /api/candidatures/{id}/statut
-     * Accessible par: RH (permission EVALUATE_CANDIDATES)
+     * Accessible par: RH (permission EVALUER_CANDIDATURE)
      */
     @PatchMapping("/{id}/statut")
-    @PreAuthorize("hasAuthority('EVALUATE_CANDIDATES')")
+    @PreAuthorize("hasAuthority('EVALUER_CANDIDATURE')")
     public ResponseEntity<ApiResponse<CandidatureResponse>> changerStatut(
             @PathVariable UUID id,
             @Valid @RequestBody ChangeStatutCandidatureRequest request) {
@@ -169,10 +169,10 @@ public class CandidatureController {
     /**
      * Lister toutes les candidatures.
      * GET /api/candidatures?tri=date|score
-     * Accessible par: RH (permission EVALUATE_CANDIDATES)
+     * Accessible par: RH (permission EVALUER_CANDIDATURE)
      */
     @GetMapping
-    @PreAuthorize("hasAuthority('EVALUATE_CANDIDATES')")
+    @PreAuthorize("hasAuthority('EVALUER_CANDIDATURE')")
     public ResponseEntity<ApiResponse<List<CandidatureResponse>>> listerCandidatures(
             @RequestParam(required = false, defaultValue = "date") String tri) {
 
@@ -185,10 +185,10 @@ public class CandidatureController {
     /**
      * Filtrer les candidatures.
      * GET /api/candidatures/filtrer?statut=...&scoreMin=...&scoreMax=...
-     * Accessible par: RH (permission EVALUATE_CANDIDATES)
+     * Accessible par: RH (permission EVALUER_CANDIDATURE)
      */
     @GetMapping("/filtrer")
-    @PreAuthorize("hasAuthority('EVALUATE_CANDIDATES')")
+    @PreAuthorize("hasAuthority('EVALUER_CANDIDATURE')")
     public ResponseEntity<ApiResponse<List<CandidatureResponse>>> filtrerCandidatures(
             @RequestParam(required = false) String statut,
             @RequestParam(required = false) Double scoreMin,
@@ -214,11 +214,11 @@ public class CandidatureController {
 
         CandidatureResponse candidature = candidatureService.getCandidatureById(id);
 
-        // Verifier les droits: RH (EVALUATE_CANDIDATES), Manager (VIEW_MANAGER_CANDIDATES), ou proprietaire
+        // Verifier les droits: RH (EVALUER_CANDIDATURE), Manager (VOIR_CANDIDATURES_ASSIGNEES), ou proprietaire
         boolean isRh = currentUser.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("EVALUATE_CANDIDATES"));
+                .anyMatch(a -> a.getAuthority().equals("EVALUER_CANDIDATURE"));
         boolean isManager = currentUser.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("VIEW_MANAGER_CANDIDATES"));
+                .anyMatch(a -> a.getAuthority().equals("VOIR_CANDIDATURES_ASSIGNEES"));
         boolean isOwner = currentUser.getId().equals(candidature.candidatId());
 
         if (!isRh && !isManager && !isOwner) {
@@ -234,10 +234,10 @@ public class CandidatureController {
     /**
      * US-CAND-08: Valider une candidature (Manager).
      * POST /api/candidatures/{id}/valider-manager
-     * Accessible par: Manager (permission VALIDATE_CANDIDATES)
+     * Accessible par: Manager (permission NOTER_CANDIDATURE)
      */
     @PostMapping("/{id}/valider-manager")
-    @PreAuthorize("hasAuthority('VALIDATE_CANDIDATES')")
+    @PreAuthorize("hasAuthority('VALIDER_CANDIDATURE')")
     public ResponseEntity<ApiResponse<CandidatureResponse>> validerParManager(
             @PathVariable UUID id) {
 
@@ -250,10 +250,10 @@ public class CandidatureController {
     /**
      * US-CAND-09: Rejeter une candidature (Manager).
      * POST /api/candidatures/{id}/rejeter-manager
-     * Accessible par: Manager (permission VALIDATE_CANDIDATES)
+     * Accessible par: Manager (permission NOTER_CANDIDATURE)
      */
     @PostMapping("/{id}/rejeter-manager")
-    @PreAuthorize("hasAuthority('VALIDATE_CANDIDATES')")
+    @PreAuthorize("hasAuthority('VALIDER_CANDIDATURE')")
     public ResponseEntity<ApiResponse<CandidatureResponse>> rejeterParManager(
             @PathVariable UUID id) {
 
@@ -266,11 +266,10 @@ public class CandidatureController {
     /**
      * US-CAND-11: Consulter les candidatures transmises au Manager.
      * GET /api/candidatures/manager
-     * Accessible par: Manager (permission VALIDATE_CANDIDATES)
-     * Filtre par le manager_id du manager connecte.
+     * Accessible par: Manager (permission VOIR_CANDIDATURES_ASSIGNEES)
      */
     @GetMapping("/manager")
-    @PreAuthorize("hasAuthority('VALIDATE_CANDIDATES')")
+    @PreAuthorize("hasAuthority('VOIR_CANDIDATURES_ASSIGNEES')")
     public ResponseEntity<ApiResponse<List<CandidatureResponse>>> getCandidaturesManager(
             @AuthenticationPrincipal Utilisateur currentUser) {
 
@@ -288,7 +287,7 @@ public class CandidatureController {
      * Accessible par: RH et Manager
      */
     @GetMapping("/cv/{id}")
-    @PreAuthorize("hasAnyAuthority('EVALUATE_CANDIDATES', 'VALIDATE_CANDIDATES')")
+    @PreAuthorize("hasAnyAuthority('EVALUER_CANDIDATURE', 'NOTER_CANDIDATURE')")
     public ResponseEntity<Resource> downloadCv(@PathVariable UUID id) {
         try {
             Path filePath = candidatureService.getCvPath(id);

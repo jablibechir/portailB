@@ -41,10 +41,10 @@ public class EvaluationController {
     /**
      * US-EVAL-01: Creer une evaluation (RH).
      * POST /api/evaluations/rh
-     * Accessible par: RH (permission EVALUATE_CANDIDATES)
+     * Accessible par: RH (permission EVALUER_CANDIDATURE)
      */
     @PostMapping("/rh")
-    @PreAuthorize("hasAuthority('EVALUATE_CANDIDATES')")
+    @PreAuthorize("hasAuthority('EVALUER_CANDIDATURE')")
     public ResponseEntity<ApiResponse<EvaluationResponse>> evaluerParRh(
             @Valid @RequestBody CreateEvaluationRequest request,
             @AuthenticationPrincipal Utilisateur currentUser) {
@@ -62,7 +62,7 @@ public class EvaluationController {
      * Accessible par: RH et Manager (permission EVALUATE_CANDIDATES)
      */
     @GetMapping("/candidature/{candidatureId}")
-    @PreAuthorize("hasAuthority('EVALUATE_CANDIDATES')")
+    @PreAuthorize("hasAuthority('EVALUER_CANDIDATURE')")
     public ResponseEntity<ApiResponse<List<EvaluationResponse>>> getEvaluationsByCandidature(
             @PathVariable UUID candidatureId) {
 
@@ -79,7 +79,7 @@ public class EvaluationController {
      * Accessible par: RH et Manager (permission EVALUATE_CANDIDATES)
      */
     @GetMapping("/mes")
-    @PreAuthorize("hasAuthority('EVALUATE_CANDIDATES')")
+    @PreAuthorize("hasAuthority('EVALUER_CANDIDATURE')")
     public ResponseEntity<ApiResponse<List<EvaluationResponse>>> getMesEvaluations(
             @AuthenticationPrincipal Utilisateur currentUser) {
 
@@ -96,7 +96,7 @@ public class EvaluationController {
      * Accessible par: RH et Manager (permission EVALUATE_CANDIDATES)
      */
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('EVALUATE_CANDIDATES')")
+    @PreAuthorize("hasAuthority('EVALUER_CANDIDATURE')")
     public ResponseEntity<ApiResponse<EvaluationResponse>> getEvaluationById(
             @PathVariable UUID id) {
 
@@ -114,7 +114,7 @@ public class EvaluationController {
      * Accessible par: RH (permission EVALUATE_CANDIDATES)
      */
     @GetMapping("/toutes")
-    @PreAuthorize("hasAuthority('EVALUATE_CANDIDATES')")
+    @PreAuthorize("hasAuthority('EVALUER_CANDIDATURE')")
     public ResponseEntity<ApiResponse<List<EvaluationResponse>>> getAllEvaluations() {
         List<EvaluationResponse> evaluations = evaluationService.getAllEvaluations();
         return ResponseEntity.ok(
@@ -127,7 +127,7 @@ public class EvaluationController {
      * Accessible par: Manager (permission VALIDATE_CANDIDATES)
      */
     @PostMapping("/manager")
-    @PreAuthorize("hasAuthority('VALIDATE_CANDIDATES')")
+    @PreAuthorize("hasAuthority('NOTER_CANDIDATURE')")
     public ResponseEntity<ApiResponse<EvaluationResponse>> evaluerParManager(
             @Valid @RequestBody CreateEvaluationRequest request,
             @AuthenticationPrincipal Utilisateur currentUser) {

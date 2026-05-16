@@ -32,7 +32,7 @@ public class EmailService {
      * @param baseUrl  URL de base de l'application (ex: http://localhost:8080)
      */
     public void sendVerificationEmail(String toEmail, String nom, String code, String baseUrl) {
-        String link = baseUrl + "/api/auth/verify?code=" + code;
+        String link = baseUrl + "/activate?code=" + code;
 
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(fromAddress);

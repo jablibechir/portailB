@@ -26,7 +26,7 @@ public class DashboardController {
      * Retourne les KPIs et statistiques pour le RH.
      */
     @GetMapping
-    @PreAuthorize("hasAuthority('VIEW_STATS') or hasAuthority('VIEW_STATISTICS')")
+    @PreAuthorize("hasAuthority('VOIR_STATISTIQUES')")
     public ResponseEntity<ApiResponse<DashboardResponse>> getDashboard() {
         DashboardResponse dashboard = dashboardService.getDashboard();
         return ResponseEntity.ok(ApiResponse.success(dashboard, "Dashboard charge"));
@@ -37,7 +37,7 @@ public class DashboardController {
      * Alias attendu par le frontend pour les KPIs du dashboard.
      */
     @GetMapping("/stats")
-    @PreAuthorize("hasAuthority('VIEW_STATS') or hasAuthority('VIEW_STATISTICS')")
+    @PreAuthorize("hasAuthority('VOIR_STATISTIQUES')")
     public ResponseEntity<ApiResponse<DashboardResponse>> getDashboardStats() {
         DashboardResponse dashboard = dashboardService.getDashboard();
         return ResponseEntity.ok(ApiResponse.success(dashboard, "Statistiques du dashboard"));

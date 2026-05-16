@@ -32,7 +32,7 @@ public class ScoringController {
      * Récupérer tous les critères d'une offre.
      */
     @GetMapping("/offre/{offreId}/criteres")
-    @PreAuthorize("hasAuthority('MANAGE_SCORING_CRITERIA')")
+    @PreAuthorize("hasAuthority('GERER_CRITERES')")
     public ResponseEntity<ApiResponse<List<CritereResponse>>> getCriteres(@PathVariable UUID offreId) {
         List<CritereResponse> criteres = scoringService.getCriteresByOffre(offreId);
         return ResponseEntity.ok(ApiResponse.success(criteres, "Critères récupérés"));
@@ -43,7 +43,7 @@ public class ScoringController {
      * Créer un critère pour une offre.
      */
     @PostMapping("/offre/{offreId}/criteres")
-    @PreAuthorize("hasAuthority('MANAGE_SCORING_CRITERIA')")
+    @PreAuthorize("hasAuthority('GERER_CRITERES')")
     public ResponseEntity<ApiResponse<CritereResponse>> createCritere(
             @PathVariable UUID offreId,
             @Valid @RequestBody CritereRequest request) {
@@ -56,7 +56,7 @@ public class ScoringController {
      * Modifier un critère existant.
      */
     @PutMapping("/criteres/{critereId}")
-    @PreAuthorize("hasAuthority('MANAGE_SCORING_CRITERIA')")
+    @PreAuthorize("hasAuthority('GERER_CRITERES')")
     public ResponseEntity<ApiResponse<CritereResponse>> updateCritere(
             @PathVariable UUID critereId,
             @Valid @RequestBody CritereRequest request) {
@@ -69,7 +69,7 @@ public class ScoringController {
      * Supprimer un critère.
      */
     @DeleteMapping("/criteres/{critereId}")
-    @PreAuthorize("hasAuthority('MANAGE_SCORING_CRITERIA')")
+    @PreAuthorize("hasAuthority('GERER_CRITERES')")
     public ResponseEntity<ApiResponse<Void>> deleteCritere(@PathVariable UUID critereId) {
         scoringService.deleteCritere(critereId);
         return ResponseEntity.ok(ApiResponse.success(null, "Critère supprimé avec succès"));
@@ -80,7 +80,7 @@ public class ScoringController {
      * Vérifier si les critères d'une offre sont valides (total = 100%).
      */
     @GetMapping("/offre/{offreId}/valid")
-    @PreAuthorize("hasAuthority('MANAGE_SCORING_CRITERIA')")
+    @PreAuthorize("hasAuthority('GERER_CRITERES')")
     public ResponseEntity<ApiResponse<Boolean>> isCriteresValid(@PathVariable UUID offreId) {
         boolean valid = scoringService.isCriteresValid(offreId);
         return ResponseEntity.ok(ApiResponse.success(valid,
@@ -96,7 +96,7 @@ public class ScoringController {
      * Lancer le scoring d'une candidature via le microservice IA Python.
      */
     @PostMapping("/candidature/{candidatureId}")
-    @PreAuthorize("hasAuthority('EVALUATE_CANDIDATES')")
+    @PreAuthorize("hasAuthority('EVALUER_CANDIDATURE')")
     public ResponseEntity<ApiResponse<ScoringResultResponse>> scoreCandidature(
             @PathVariable UUID candidatureId) {
         ScoringResultResponse result = scoringService.scoreCandidature(candidatureId);
@@ -108,7 +108,7 @@ public class ScoringController {
      * Alias attendu par le frontend (déclenche le calcul du score).
      */
     @PostMapping("/calculer/{candidatureId}")
-    @PreAuthorize("hasAuthority('EVALUATE_CANDIDATES')")
+    @PreAuthorize("hasAuthority('EVALUER_CANDIDATURE')")
     public ResponseEntity<ApiResponse<ScoringResultResponse>> calculerScore(
             @PathVariable UUID candidatureId) {
         ScoringResultResponse result = scoringService.scoreCandidature(candidatureId);
@@ -120,7 +120,7 @@ public class ScoringController {
      * Consulter le résultat de scoring d'une candidature.
      */
     @GetMapping("/candidature/{candidatureId}")
-    @PreAuthorize("hasAuthority('EVALUATE_CANDIDATES')")
+    @PreAuthorize("hasAuthority('EVALUER_CANDIDATURE')")
     public ResponseEntity<ApiResponse<ScoringResultResponse>> getScore(
             @PathVariable UUID candidatureId) {
         ScoringResultResponse result = scoringService.getScoreForCandidature(candidatureId);

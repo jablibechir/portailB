@@ -31,10 +31,10 @@ public class OffreController {
     /**
      * US-OFF-01: Creer une offre d'emploi.
      * POST /api/offres
-     * Accessible par: RH (permission MANAGE_OFFERS)
+     * Accessible par: RH (permission GERER_OFFRES)
      */
     @PostMapping
-    @PreAuthorize("hasAuthority('MANAGE_OFFERS')")
+    @PreAuthorize("hasAuthority('GERER_OFFRES')")
     public ResponseEntity<ApiResponse<OffreResponse>> createOffre(
             @Valid @RequestBody CreateOffreRequest request,
             @AuthenticationPrincipal Utilisateur currentUser) {
@@ -49,10 +49,10 @@ public class OffreController {
     /**
      * US-OFF-02: Modifier une offre d'emploi.
      * PUT /api/offres/{id}
-     * Accessible par: RH (permission MANAGE_OFFERS)
+     * Accessible par: RH (permission GERER_OFFRES)
      */
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('MANAGE_OFFERS')")
+    @PreAuthorize("hasAuthority('GERER_OFFRES')")
     public ResponseEntity<ApiResponse<OffreResponse>> updateOffre(
             @PathVariable UUID id,
             @Valid @RequestBody UpdateOffreRequest request) {
@@ -65,11 +65,11 @@ public class OffreController {
     /**
      * US-OFF-03: Supprimer une offre d'emploi.
      * DELETE /api/offres/{id}
-     * Accessible par: RH (permission MANAGE_OFFERS)
+     * Accessible par: RH (permission GERER_OFFRES)
      * Note: La confirmation est geree cote frontend.
      */
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('MANAGE_OFFERS')")
+    @PreAuthorize("hasAuthority('GERER_OFFRES')")
     public ResponseEntity<ApiResponse<Void>> deleteOffre(@PathVariable UUID id) {
         offreService.deleteOffre(id);
 
@@ -79,10 +79,10 @@ public class OffreController {
     /**
      * US-OFF-04: Changer le statut d'une offre.
      * PATCH /api/offres/{id}/statut
-     * Accessible par: RH (permission MANAGE_OFFERS)
+     * Accessible par: RH (permission GERER_OFFRES)
      */
     @PatchMapping("/{id}/statut")
-    @PreAuthorize("hasAuthority('MANAGE_OFFERS')")
+    @PreAuthorize("hasAuthority('GERER_OFFRES')")
     public ResponseEntity<ApiResponse<OffreResponse>> changeStatut(
             @PathVariable UUID id,
             @Valid @RequestBody ChangeStatutRequest request) {
@@ -95,10 +95,10 @@ public class OffreController {
     /**
      * Recuperer toutes les offres (tous statuts).
      * GET /api/offres/admin
-     * Accessible par: RH (permission MANAGE_OFFERS)
+     * Accessible par: RH (permission GERER_OFFRES)
      */
     @GetMapping("/admin")
-    @PreAuthorize("hasAuthority('MANAGE_OFFERS')")
+    @PreAuthorize("hasAuthority('GERER_OFFRES')")
     public ResponseEntity<ApiResponse<List<OffreResponse>>> getAllOffres() {
         List<OffreResponse> offres = offreService.getAllOffres();
 
@@ -108,10 +108,10 @@ public class OffreController {
     /**
      * Recuperer une offre par ID (pour edition).
      * GET /api/offres/admin/{id}
-     * Accessible par: RH (permission MANAGE_OFFERS)
+     * Accessible par: RH (permission GERER_OFFRES)
      */
     @GetMapping("/admin/{id}")
-    @PreAuthorize("hasAuthority('MANAGE_OFFERS')")
+    @PreAuthorize("hasAuthority('GERER_OFFRES')")
     public ResponseEntity<ApiResponse<OffreResponse>> getOffreById(@PathVariable UUID id) {
         OffreResponse offre = offreService.getOffreById(id);
 
@@ -157,10 +157,10 @@ public class OffreController {
     /**
      * Manager: Recommander un nouveau poste.
      * POST /api/offres/recommandations
-     * Accessible par: Manager (permission RECOMMEND_POSITIONS)
+     * Accessible par: Manager (permission RECOMMANDER_OFFRE)
      */
     @PostMapping("/recommandations")
-    @PreAuthorize("hasAuthority('RECOMMEND_POSITIONS')")
+    @PreAuthorize("hasAuthority('RECOMMANDER_OFFRE')")
     public ResponseEntity<ApiResponse<OffreResponse>> recommanderPoste(
             @Valid @RequestBody RecommandationRequest request,
             @AuthenticationPrincipal Utilisateur currentUser) {
@@ -175,10 +175,10 @@ public class OffreController {
     /**
      * Manager: Voir ses recommandations.
      * GET /api/offres/recommandations/mes
-     * Accessible par: Manager (permission RECOMMEND_POSITIONS)
+     * Accessible par: Manager (permission RECOMMANDER_OFFRE)
      */
     @GetMapping("/recommandations/mes")
-    @PreAuthorize("hasAuthority('RECOMMEND_POSITIONS')")
+    @PreAuthorize("hasAuthority('RECOMMANDER_OFFRE')")
     public ResponseEntity<ApiResponse<List<OffreResponse>>> getMesRecommandations(
             @AuthenticationPrincipal Utilisateur currentUser) {
 
@@ -190,10 +190,10 @@ public class OffreController {
     /**
      * RH: Voir les recommandations en attente.
      * GET /api/offres/recommandations/en-attente
-     * Accessible par: RH (permission MANAGE_OFFERS)
+     * Accessible par: RH (permission GERER_OFFRES)
      */
     @GetMapping("/recommandations/en-attente")
-    @PreAuthorize("hasAuthority('MANAGE_OFFERS')")
+    @PreAuthorize("hasAuthority('GERER_OFFRES')")
     public ResponseEntity<ApiResponse<List<OffreResponse>>> getRecommandationsEnAttente() {
 
         List<OffreResponse> offres = offreService.getRecommandationsEnAttente();
@@ -204,11 +204,11 @@ public class OffreController {
     /**
      * RH: Traiter une recommandation (publier / brouillon / refuser).
      * POST /api/offres/recommandations/{id}/traiter
-     * Accessible par: RH (permission MANAGE_OFFERS)
+     * Accessible par: RH (permission GERER_OFFRES)
      * Body: { "action": "publier|brouillon|refuser", "motifRefus": "...", "updates": {...} }
      */
     @PostMapping("/recommandations/{id}/traiter")
-    @PreAuthorize("hasAuthority('MANAGE_OFFERS')")
+    @PreAuthorize("hasAuthority('GERER_OFFRES')")
     public ResponseEntity<ApiResponse<OffreResponse>> traiterRecommandation(
             @PathVariable UUID id,
             @RequestBody java.util.Map<String, Object> body) {

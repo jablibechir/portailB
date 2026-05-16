@@ -27,5 +27,8 @@ public record UpdateUserRequest(
         EtatUtilisateur etat,
 
         @NotBlank(message = "Le role est obligatoire")
-        String roleName
+        String roleName,
+
+        @Size(min = 8, message = "Le mot de passe doit contenir au moins 8 caracteres")
+        String motDePasse
 ) {}

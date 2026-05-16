@@ -33,7 +33,7 @@ public class Permission {
     private UUID id;
 
     /**
-     * Code unique de la permission. Ex: "VIEW_OFFERS", "MANAGE_USERS"
+     * Code unique de la permission. Ex: "VOIR_OFFRES", "GERER_UTILISATEURS"
      * Utilise comme GrantedAuthority dans Spring Security.
      */
     @Column(name = "code", length = 50, nullable = false, unique = true)
