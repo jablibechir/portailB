@@ -8,6 +8,7 @@ import java.util.UUID;
 
 /**
  * DTO de reponse pour les evaluations.
+ * Inclut les infos candidat et score pour l'historique.
  */
 public record EvaluationResponse(
         UUID id,
@@ -16,6 +17,9 @@ public record EvaluationResponse(
         UUID evaluateurId,
         String evaluateurNom,
         String evaluateurPrenom,
+        String candidatNom,
+        String candidatPrenom,
+        Double scoreTotal,
         String commentaire,
         DecisionEvaluation decision,
         LocalDate dateEvaluation,

@@ -18,6 +18,9 @@ public interface EvaluationMapper {
     @Mapping(source = "evaluateur.id", target = "evaluateurId")
     @Mapping(source = "evaluateur.nom", target = "evaluateurNom")
     @Mapping(source = "evaluateur.prenom", target = "evaluateurPrenom")
+    @Mapping(source = "candidature.candidat.nom", target = "candidatNom")
+    @Mapping(source = "candidature.candidat.prenom", target = "candidatPrenom")
+    @Mapping(source = "candidature.scoreTotal", target = "scoreTotal")
     EvaluationResponse toResponse(Evaluation evaluation);
 
     List<EvaluationResponse> toResponseList(List<Evaluation> evaluations);

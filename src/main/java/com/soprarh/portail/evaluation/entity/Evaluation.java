@@ -20,7 +20,7 @@ import java.util.UUID;
  *   decision        varchar(20),
  *   date_evaluation date DEFAULT CURRENT_DATE,
  *   date_creation   timestamp DEFAULT CURRENT_TIMESTAMP,
- *   CONSTRAINT evaluations_decision_check CHECK (decision IN ('pour_suivre','a_revoir','rejeter'))
+ *   CONSTRAINT evaluations_decision_check CHECK (decision IN ('pour_suivre','rejeter'))
  * );
  */
 @Entity

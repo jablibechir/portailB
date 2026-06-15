@@ -273,6 +273,15 @@ public class ScoringService {
         // Construire les champs CV séparés depuis donnees_cv
         Map<String, String> cvFields = extractCvFields(candidature);
 
+        // Log CV fields for debugging
+        log.info("Scoring candidature {}: CV fields extracted = {}", 
+                candidature.getId(), 
+                cvFields.entrySet().stream()
+                    .collect(Collectors.toMap(
+                        Map.Entry::getKey, 
+                        e -> e.getValue() != null && !e.getValue().isEmpty() ? e.getValue().length() + " chars" : "EMPTY"
+                    )));
+
         // Construire les champs offre séparés
         Map<String, String> offreFields = new HashMap<>();
         offreFields.put("competences_requises", offre.getCompetencesRequises() != null ? offre.getCompetencesRequises() : "");
@@ -281,6 +290,15 @@ public class ScoringService {
         offreFields.put("langues_requises", offre.getLanguesRequises() != null ? offre.getLanguesRequises() : "");
         offreFields.put("certifications_requises", offre.getCertificationsRequises() != null ? offre.getCertificationsRequises() : "");
         offreFields.put("soft_skills_requis", offre.getSoftSkillsRequis() != null ? offre.getSoftSkillsRequis() : "");
+
+        // Log offre fields for debugging
+        log.info("Scoring offre {}: Offre fields = {}", 
+                offre.getId(),
+                offreFields.entrySet().stream()
+                    .collect(Collectors.toMap(
+                        Map.Entry::getKey, 
+                        e -> e.getValue() != null && !e.getValue().isEmpty() ? e.getValue().length() + " chars" : "EMPTY"
+                    )));
 
         // Construire la liste des critères
         List<Map<String, Object>> criteresPayload = criteres.stream().map(c -> {
@@ -291,6 +309,9 @@ public class ScoringService {
             m.put("type", c.getType() != null ? c.getType().name() : "COMPETENCES");
             return m;
         }).collect(Collectors.toList());
+
+        log.info("Scoring with {} criteres: {}", criteres.size(), 
+                criteres.stream().map(c -> c.getType() + "(" + c.getPoids() + "%)").collect(Collectors.joining(", ")));
 
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("cv_fields", cvFields);
@@ -318,6 +339,10 @@ public class ScoringService {
         Double scoreTotal = ((Number) response.get("score_total")).doubleValue();
         List<Map<String, Object>> details = (List<Map<String, Object>>) response.get("details");
         Boolean needsReview = (Boolean) response.get("needs_review");
+
+        // Log the result
+        log.info("Scoring result for candidature {}: score_total={}, needs_review={}", 
+                candidature.getId(), scoreTotal, needsReview);
 
         // Sauvegarder le résultat
         ResultatScoring resultat = ResultatScoring.builder()
@@ -484,22 +509,85 @@ public class ScoringService {
         fields.put("certifications", "");
         fields.put("soft_skills", "");
 
-        if (candidature.getCv() == null) return fields;
+        if (candidature.getCv() == null) {
+            log.warn("extractCvFields: CV is null for candidature {}", candidature.getId());
+            return fields;
+        }
 
         try {
             var donneesCv = candidature.getCv().getDonneesCv();
-            if (donneesCv == null) return fields;
+            if (donneesCv == null) {
+                log.warn("extractCvFields: DonneesCv is null for candidature {} (CV id={})", 
+                        candidature.getId(), candidature.getCv().getId());
+                return fields;
+            }
+
+            log.debug("extractCvFields: Found donneesCv id={} for candidature {}", 
+                    donneesCv.getId(), candidature.getId());
 
             if (donneesCv.getCompetences() != null) fields.put("competences", donneesCv.getCompetences());
             if (donneesCv.getExperiences() != null) fields.put("experiences", donneesCv.getExperiences());
             if (donneesCv.getFormations() != null) fields.put("formations", donneesCv.getFormations());
-            if (donneesCv.getLangues() != null) fields.put("langues", donneesCv.getLangues());
-            if (donneesCv.getCertifications() != null) fields.put("certifications", donneesCv.getCertifications());
-            if (donneesCv.getSoftSkills() != null) fields.put("soft_skills", donneesCv.getSoftSkills());
+            
+            // Langues, certifications, softSkills sont stockées en JSON - les convertir en texte
+            if (donneesCv.getLangues() != null) {
+                fields.put("langues", parseJsonArrayToText(donneesCv.getLangues(), "langue", "niveau"));
+            }
+            if (donneesCv.getCertifications() != null) {
+                fields.put("certifications", parseJsonArrayToText(donneesCv.getCertifications(), "certification", null));
+            }
+            if (donneesCv.getSoftSkills() != null) {
+                fields.put("soft_skills", parseJsonArrayToTextSimple(donneesCv.getSoftSkills()));
+            }
         } catch (Exception e) {
-            log.warn("Impossible d'extraire les champs CV pour candidature {}", candidature.getId(), e);
+            log.warn("Impossible d'extraire les champs CV pour candidature {}: {}", 
+                    candidature.getId(), e.getMessage(), e);
         }
         return fields;
+    }
+
+    /**
+     * Parse un JSON array de type [{"key": "value", "key2": "value2"}] et retourne une chaîne de texte.
+     * Si secondKey est fourni, combine les valeurs: "value1 value2, value1 value2, ..."
+     */
+    @SuppressWarnings("unchecked")
+    private String parseJsonArrayToText(String json, String primaryKey, String secondaryKey) {
+        if (json == null || json.isBlank()) return "";
+        try {
+            var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            List<Map<String, Object>> list = mapper.readValue(json, List.class);
+            return list.stream()
+                    .map(m -> {
+                        String primary = m.get(primaryKey) != null ? m.get(primaryKey).toString() : "";
+                        if (secondaryKey != null && m.get(secondaryKey) != null) {
+                            return primary + " " + m.get(secondaryKey).toString();
+                        }
+                        return primary;
+                    })
+                    .filter(s -> !s.isBlank())
+                    .collect(Collectors.joining(", "));
+        } catch (Exception e) {
+            log.debug("Could not parse JSON array: {}, returning raw value", e.getMessage());
+            return json; // Retourne la valeur brute si parsing échoue
+        }
+    }
+
+    /**
+     * Parse un JSON array de strings ["value1", "value2"] et retourne une chaîne de texte.
+     */
+    @SuppressWarnings("unchecked")
+    private String parseJsonArrayToTextSimple(String json) {
+        if (json == null || json.isBlank()) return "";
+        try {
+            var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            List<String> list = mapper.readValue(json, List.class);
+            return list.stream()
+                    .filter(s -> s != null && !s.isBlank())
+                    .collect(Collectors.joining(", "));
+        } catch (Exception e) {
+            log.debug("Could not parse JSON string array: {}, returning raw value", e.getMessage());
+            return json; // Retourne la valeur brute si parsing échoue
+        }
     }
 
     /**

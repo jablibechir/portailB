@@ -213,7 +213,7 @@ public class EvaluationService {
             return DecisionEvaluation.valueOf(decision.toLowerCase());
         } catch (IllegalArgumentException e) {
             throw new BusinessException(
-                    "Decision invalide: " + decision + ". Valeurs acceptees: pour_suivre, a_revoir, rejeter",
+                    "Decision invalide: " + decision + ". Valeurs acceptees: pour_suivre, rejeter",
                     HttpStatus.BAD_REQUEST);
         }
     }

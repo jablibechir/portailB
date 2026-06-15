@@ -14,7 +14,7 @@ public record CreateEvaluationRequest(
         String commentaire,
 
         @NotNull(message = "La decision est obligatoire")
-        String decision // pour_suivre, a_revoir, rejeter
+        String decision // pour_suivre, rejeter
 ) {
 }
 

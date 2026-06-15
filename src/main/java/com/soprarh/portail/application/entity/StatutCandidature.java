@@ -4,7 +4,8 @@ package com.soprarh.portail.application.entity;
  * Enum pour le statut d'une candidature.
  * Valeurs exactes de la contrainte CHECK en base:
  * CHECK (statut IN ('soumise','en_evaluation_rh','envoyee_manager',
- *                   'acceptee_manager','rejetee_rh','rejetee_manager','entretien_planifie'))
+ *                   'acceptee_manager','rejetee_rh','rejetee_manager',
+ *                   'entretien_planifie','entretien_confirme','entretien_termine'))
  */
 public enum StatutCandidature {
     soumise,
@@ -13,6 +14,8 @@ public enum StatutCandidature {
     acceptee_manager,
     rejetee_rh,
     rejetee_manager,
-    entretien_planifie
+    entretien_planifie,
+    entretien_confirme,
+    entretien_termine
 }
 

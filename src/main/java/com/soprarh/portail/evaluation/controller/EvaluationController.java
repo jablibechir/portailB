@@ -59,10 +59,10 @@ public class EvaluationController {
     /**
      * US-EVAL-03: Consulter toutes les evaluations d'une candidature.
      * GET /api/evaluations/candidature/{candidatureId}
-     * Accessible par: RH et Manager (permission EVALUATE_CANDIDATES)
+     * Accessible par: RH (EVALUER_CANDIDATURE) et Manager (NOTER_CANDIDATURE)
      */
     @GetMapping("/candidature/{candidatureId}")
-    @PreAuthorize("hasAuthority('EVALUER_CANDIDATURE')")
+    @PreAuthorize("hasAnyAuthority('EVALUER_CANDIDATURE', 'NOTER_CANDIDATURE')")
     public ResponseEntity<ApiResponse<List<EvaluationResponse>>> getEvaluationsByCandidature(
             @PathVariable UUID candidatureId) {
 
@@ -76,10 +76,10 @@ public class EvaluationController {
     /**
      * Consulter mes evaluations (celles que j'ai faites).
      * GET /api/evaluations/mes
-     * Accessible par: RH et Manager (permission EVALUATE_CANDIDATES)
+     * Accessible par: RH (EVALUER_CANDIDATURE) et Manager (NOTER_CANDIDATURE)
      */
     @GetMapping("/mes")
-    @PreAuthorize("hasAuthority('EVALUER_CANDIDATURE')")
+    @PreAuthorize("hasAnyAuthority('EVALUER_CANDIDATURE', 'NOTER_CANDIDATURE')")
     public ResponseEntity<ApiResponse<List<EvaluationResponse>>> getMesEvaluations(
             @AuthenticationPrincipal Utilisateur currentUser) {
 
@@ -93,10 +93,10 @@ public class EvaluationController {
     /**
      * Consulter une evaluation par son ID.
      * GET /api/evaluations/{id}
-     * Accessible par: RH et Manager (permission EVALUATE_CANDIDATES)
+     * Accessible par: RH (EVALUER_CANDIDATURE) et Manager (NOTER_CANDIDATURE)
      */
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('EVALUER_CANDIDATURE')")
+    @PreAuthorize("hasAnyAuthority('EVALUER_CANDIDATURE', 'NOTER_CANDIDATURE')")
     public ResponseEntity<ApiResponse<EvaluationResponse>> getEvaluationById(
             @PathVariable UUID id) {
 

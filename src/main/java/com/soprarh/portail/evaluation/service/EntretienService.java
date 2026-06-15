@@ -202,6 +202,7 @@ public class EntretienService {
 
     /**
      * Mettre a jour le statut d'un entretien.
+     * Met egalement a jour le statut de la candidature associee.
      *
      * @param id ID de l'entretien
      * @param statut nouveau statut (planifie, confirme, annule, termine)
@@ -219,6 +220,32 @@ public class EntretienService {
         
         Entretien saved = entretienRepository.save(entretien);
         log.info("Statut entretien mis a jour: entretienId={}, statut={}", id, nouveauStatut);
+
+        // Mettre a jour le statut de la candidature associee
+        Candidature candidature = entretien.getCandidature();
+        if (candidature != null) {
+            switch (nouveauStatut) {
+                case confirme:
+                    candidature.setStatut(StatutCandidature.entretien_confirme);
+                    candidatureRepository.save(candidature);
+                    log.info("Candidature mise a jour: candidatureId={}, statut=entretien_confirme", candidature.getId());
+                    break;
+                case annule:
+                    // Retour a acceptee_manager pour permettre de replanifier un entretien
+                    candidature.setStatut(StatutCandidature.acceptee_manager);
+                    candidatureRepository.save(candidature);
+                    log.info("Candidature mise a jour: candidatureId={}, statut=acceptee_manager (entretien annule)", candidature.getId());
+                    break;
+                case termine:
+                    candidature.setStatut(StatutCandidature.entretien_termine);
+                    candidatureRepository.save(candidature);
+                    log.info("Candidature mise a jour: candidatureId={}, statut=entretien_termine", candidature.getId());
+                    break;
+                default:
+                    // Pour 'planifie', pas de changement (deja gere a la creation)
+                    break;
+            }
+        }
 
         return entretienMapper.toResponse(saved);
     }
